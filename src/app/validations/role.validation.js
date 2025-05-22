@@ -1,0 +1,33 @@
+'use strict';
+//import autoBind from '../../system/autobind';
+import { Validation } from './validation.js';
+
+class RoleValidation extends Validation {
+  /**
+   * Validation constructor
+   * @author Ujjwal Bera
+   * @param null
+   */
+  constructor() {
+    super();
+  }
+
+  async create(req, res, next) {
+    const validationRule = {
+      parent: 'exists:Role,id',
+      name: 'required|string|unique:Role,name',
+      status: 'boolean',
+    };
+    return await this.validate(req, res, next, validationRule);
+  }
+
+  async update(req, res, next) {
+    const validationRule = {
+      parent: 'exists:Role,id',
+      name: 'required|string|unique:Role,name,id,' + req.params.id,
+      status: 'required|boolean',
+    };
+    return await this.validate(req, res, next, validationRule);
+  }
+}
+export default new RoleValidation();
