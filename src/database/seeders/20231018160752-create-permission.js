@@ -1,15 +1,18 @@
 'use strict';
 
 async function up({ context: queryInterface }) {
+  const dbName = queryInterface.sequelize.getDialect();
   await queryInterface
     .bulkInsert(
-      'permissions',
+      'acl_permissions',
       [
         {
           id: 1,
           name: 'Full Access',
           slug: 'full-access',
           status: true,
+          lastActivityBy: 1,
+          deletedAt: null,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -18,6 +21,8 @@ async function up({ context: queryInterface }) {
           name: 'List View',
           slug: 'list-view',
           status: true,
+          lastActivityBy: 1,
+          deletedAt: null,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -26,6 +31,8 @@ async function up({ context: queryInterface }) {
           name: 'Drop-down List',
           slug: 'drop-downList',
           status: true,
+          lastActivityBy: 1,
+          deletedAt: null,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -34,6 +41,8 @@ async function up({ context: queryInterface }) {
           name: 'Single Details View',
           slug: 'single-details-view',
           status: true,
+          lastActivityBy: 1,
+          deletedAt: null,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -42,6 +51,8 @@ async function up({ context: queryInterface }) {
           name: 'Create New',
           slug: 'create-new',
           status: true,
+          lastActivityBy: 1,
+          deletedAt: null,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -50,6 +61,8 @@ async function up({ context: queryInterface }) {
           name: 'Update Existing',
           slug: 'update-existing',
           status: true,
+          lastActivityBy: 1,
+          deletedAt: null,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -58,6 +71,8 @@ async function up({ context: queryInterface }) {
           name: 'Delete Existing',
           slug: 'delete-existing',
           status: true,
+          lastActivityBy: 1,
+          deletedAt: null,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -66,6 +81,8 @@ async function up({ context: queryInterface }) {
           name: 'Download Single Details',
           slug: 'download-single-details',
           status: true,
+          lastActivityBy: 1,
+          deletedAt: null,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -74,6 +91,8 @@ async function up({ context: queryInterface }) {
           name: 'Download List',
           slug: 'download-list',
           status: true,
+          lastActivityBy: 1,
+          deletedAt: null,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -82,6 +101,8 @@ async function up({ context: queryInterface }) {
           name: 'Manage Columns',
           slug: 'manage-columns',
           status: true,
+          lastActivityBy: 1,
+          deletedAt: null,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -90,6 +111,8 @@ async function up({ context: queryInterface }) {
           name: 'Full Deny',
           slug: 'full-deny',
           status: true,
+          lastActivityBy: 1,
+          deletedAt: null,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -98,6 +121,8 @@ async function up({ context: queryInterface }) {
           name: 'Others',
           slug: 'others',
           status: true,
+          lastActivityBy: 1,
+          deletedAt: null,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -109,13 +134,15 @@ async function up({ context: queryInterface }) {
       throw ex;
     });
 
-  await queryInterface.sequelize.query(
-    "SELECT setval('permissions_id_seq', (SELECT MAX(id) FROM permissions))"
-  );
+  if (dbName === 'postgres') {
+    await queryInterface.sequelize.query(
+      "SELECT setval('acl_permissions_id_seq', (SELECT MAX(id) FROM acl_permissions))"
+    );
+  }
 }
 
 async function down({ context: queryInterface }) {
-  await queryInterface.bulkDelete('permissions', null, {}).catch((ex) => {
+  await queryInterface.bulkDelete('acl_permissions', null, {}).catch((ex) => {
     console.error(ex);
     throw ex;
   });

@@ -1,8 +1,9 @@
 'use strict';
-import { DataTypes, Model } from 'sequelize';
-import { sequelize } from '../system/core/db.connection.js';
+import { sequelize, DataTypes, Model } from '../system/core/db.connection.js';
+import { BaseModel } from '../system/core/model/base.model.js';
 
-class MenuResource extends Model {
+class MenuResource extends BaseModel {
+  static autoRegisterCommonHooks = false;
   static associate(models) {
     this.belongsTo(models.Resource, { foreignKey: 'resourceID' });
     this.belongsTo(models.Menu, { foreignKey: 'menuID' });
@@ -12,26 +13,26 @@ class MenuResource extends Model {
 MenuResource.init(
   {
     id: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
     },
     menuID: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'menus',
+        model: 'acl_menus',
         key: 'id',
       },
       onUpdate: 'CASCADE',
       onDelete: 'RESTRICT',
     },
     resourceID: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'resources',
+        model: 'acl_resources',
         key: 'id',
       },
       onUpdate: 'CASCADE',
@@ -48,10 +49,9 @@ MenuResource.init(
   {
     sequelize,
     modelName: 'MenuResource',
-    tableName: 'menu_resources',
-    timestamps: true,
-    paranoid: true,
-    indexes: [{ unique: true, fields: ['resourceID', 'menuID'] }],
+    tableName: 'acl_menu_resources',
+    timestamps: true, // Automatically adds `createdAt` and `updatedAt`
+    paranoid: true, // Enables `deletedAt` for soft deletes
     defaultScope: {
       attributes: {
         exclude: ['deletedAt'],
@@ -59,6 +59,16 @@ MenuResource.init(
       where: {
         status: true,
       },
+    },
+    indexes: [
+      {
+        name: 'idx_unique_acl_menu_resources_fks',
+        unique: true,
+        fields: ['resourceID', 'menuID', 'status'],
+      },
+    ],
+    hooks: {
+      beforeValidate: async (model, options) => {},
     },
   }
 );

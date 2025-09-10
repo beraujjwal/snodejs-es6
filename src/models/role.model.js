@@ -1,9 +1,21 @@
 'use strict';
 import slugify from 'slugify';
-import { DataTypes, Model, Op } from 'sequelize';
-import { sequelize } from '../system/core/db.connection.js';
+import { Op } from 'sequelize';
+import { sequelize, DataTypes, Model } from '../system/core/db.connection.js';
+import { BaseModel } from '../system/core/model/base.model.js';
 
-class Role extends Model {
+class Role extends BaseModel {
+  // ✅ Per-model configuration
+  static autoRegisterCommonHooks = true;
+  static enableSlug = true;
+  static slugField = 'name';
+  static slugTargetField = 'slug';
+
+  static enableOrder = true;
+  static orderField = 'order';
+
+  static forceStatus = true;
+
   static associate(models) {
     // Self-referencing relationship for parent roles
     this.belongsTo(this, {
@@ -32,29 +44,29 @@ class Role extends Model {
     });
 
     // Many-to-Many with Permissions
-    // this.belongsToMany(models.Permission, {
-    //   through: { model: 'RoleResourcePermission', scope: { status: true } },
-    //   attributes: ['id', 'name', 'slug', 'status'],
-    //   as: 'permissions',
-    //   foreignKey: 'roleID',
-    //   otherKey: 'permissionID',
-    // });
+    this.belongsToMany(models.Permission, {
+      through: { model: 'RoleResourcePermission', scope: { status: true } },
+      attributes: ['id', 'name', 'slug', 'status'],
+      as: 'permissions',
+      foreignKey: 'roleID',
+      otherKey: 'permissionID',
+    });
   }
 }
 
 Role.init(
   {
     id: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
     },
     parentID: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       allowNull: true, // Allow null for top-level roles
       references: {
-        model: 'roles',
+        model: 'acl_roles',
         key: 'id',
       },
       onUpdate: 'CASCADE',
@@ -68,7 +80,7 @@ Role.init(
       type: DataTypes.STRING,
       allowNull: false,
       validate: {
-        //isAlpha: true,
+        isAlpha: true,
         notIn: [['Super Admin', 'Admin']],
       },
     },
@@ -78,18 +90,10 @@ Role.init(
       unique: true,
       validate: {
         isLowercase: true,
-        async isUnique(value) {
-          const role = await Role.findOne({
-            where: { slug: value, parentID: this.parentID },
-          });
-          if (role) {
-            throw new Error('Role name already used.');
-          }
-        },
       },
     },
     description: {
-      type: DataTypes.TEXT,
+      type: DataTypes.TEXT('medium'),
       allowNull: true,
     },
     status: {
@@ -102,38 +106,29 @@ Role.init(
   {
     sequelize,
     modelName: 'Role',
-    tableName: 'roles',
-    timestamps: true,
-    paranoid: true,
-    indexes: [{ unique: true, fields: ['name', 'slug'] }],
+    tableName: 'acl_roles',
+    timestamps: true, // Automatically adds `createdAt` and `updatedAt`
+    paranoid: true, // Enables `deletedAt` for soft deletes
+    footprint: true, // Enables `lastActivityBy` for last user activity
     defaultScope: {
       attributes: {
         exclude: ['deletedAt'],
       },
     },
     scopes: {
-      withPermissions: {
-        attributes: { exclude: ['createdAt'] },
-      },
-      activeRoles: {
-        where: { status: true },
-      },
-      inActiveRoles: {
-        where: { status: false },
-      },
-      parentRoles: {
-        where: { parentID: { [Op.eq]: null } },
-      },
+      active: { where: { status: true } },
     },
-    hooks: {
-      beforeValidate: (model) => {
-        if (typeof model.name === 'string') {
-          model.slug = slugify(model.name, { lower: true, strict: true });
-        }
-        if (model.status !== false) {
-          model.status = true;
-        }
+    indexes: [
+      {
+        name: 'idx_unique_acl_roles_slug',
+        unique: true,
+        fields: ['slug'],
       },
+      { name: 'idx_acl_roles_name', fields: ['name'] },
+      { name: 'idx_acl_roles_status', fields: ['status'] },
+    ],
+    hooks: {
+      beforeValidate: async (model, options) => {},
     },
   }
 );

@@ -32,6 +32,7 @@ fs.readdirSync(routesPath)
           throw new Error(
             `Module ${path.join(innerDirPath, innerFile)} does not have a default export.`
           );
+        //console.log('`/api/${file}/`', `/api/${file}/`);
         app.use(`/api/${file}/`, routeName.default);
       });
   })

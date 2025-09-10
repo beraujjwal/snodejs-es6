@@ -1,8 +1,9 @@
 'use strict';
-import { DataTypes, Model } from 'sequelize';
-import { sequelize } from '../system/core/db.connection.js';
+import { sequelize, DataTypes, Model } from '../system/core/db.connection.js';
+import { BaseModel } from '../system/core/model/base.model.js';
 
-class Token extends Model {
+class Token extends BaseModel {
+  static autoRegisterCommonHooks = false;
   static associate(models) {
     this.belongsTo(models.User, {
       foreignKey: 'userID',
@@ -16,17 +17,17 @@ class Token extends Model {
 Token.init(
   {
     id: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
     },
     userID: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       allowNull: false,
       references: {
         model: {
-          tableName: 'users',
+          tableName: 'gnrl_users',
           modelName: 'User',
         },
         key: 'id',
@@ -35,23 +36,53 @@ Token.init(
       onDelete: 'CASCADE',
     },
     token: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING(100),
       allowNull: false,
     },
     sentTo: {
-      type: DataTypes.ENUM('EMAIL', 'PHONE'),
+      type: DataTypes.STRING(20),
+      validate: {
+        isIn: [['email', 'push', 'sms', 'whatsapp', 'other']],
+      },
+      index: true,
       allowNull: false,
-      defaultValue: 'PHONE',
+      defaultValue: 'email',
     },
     sentOn: {
-      type: DataTypes.STRING,
-      allowNull: true,
+      type: DataTypes.STRING(100),
+      index: true,
+      allowNull: false,
     },
     sentFor: {
-      type: DataTypes.ENUM('ACTIVATION', 'FORGOT_PASSWORD', 'RESET_PASSWORD'),
+      type: DataTypes.STRING(20),
+      validate: {
+        isIn: [
+          [
+            'activation',
+            'claim',
+            'consent',
+            'forgot_password',
+            'password_reset',
+            'other',
+          ],
+        ],
+      },
       allowNull: false,
-      defaultValue: 'ACTIVATION',
     },
+    // sentTo: {
+    //   type: DataTypes.ENUM('EMAIL', 'PHONE'),
+    //   allowNull: false,
+    //   defaultValue: 'PHONE',
+    // },
+    // sentOn: {
+    //   type: DataTypes.STRING,
+    //   allowNull: true,
+    // },
+    // sentFor: {
+    //   type: DataTypes.ENUM('ACTIVATION', 'FORGOT_PASSWORD', 'RESET_PASSWORD'),
+    //   allowNull: false,
+    //   defaultValue: 'ACTIVATION',
+    // },
     expireAt: {
       type: DataTypes.DATE,
       allowNull: true,
@@ -71,9 +102,10 @@ Token.init(
   {
     sequelize,
     modelName: 'Token',
-    tableName: 'tokens',
-    timestamps: false, // This automatically adds `createdAt` & `updatedAt`
+    tableName: 'gnrl_tokens',
+    timestamps: false, // Automatically adds `createdAt` and `updatedAt`
     paranoid: false, // Enables `deletedAt` for soft deletes
+    footprint: false, // Enables `lastActivityBy` for last user activity
   }
 );
 

@@ -1,12 +1,10 @@
 'use strict';
-//import autoBind from '../../system/autobind.js';
-import { controller } from './controller.js';
 import { BaseError } from '../../system/core/error/baseError.js';
-import { CONTROLLER_CAMEL_CASE_SINGULAR } from '../services/CONTROLLER_CAMEL_CASE_SINGULAR.service';
-const CONTROLLER_CAMEL_CASE_SINGULARService =
-  new CONTROLLER_CAMEL_CASE_SINGULAR('MODEL_SINGULAR_FORM');
+import Controller from './controller.js';
 
-class CONTROLLER_CAMEL_CASE_PLURAL_FORMController extends controller {
+import MODEL_SINGULAR_FORM from '../services/CONTROLLER_CAMEL_CASE_SINGULAR.service.js';
+
+class CONTROLLER_CAMEL_CASE_PLURAL_FORMController extends Controller {
   /**
    * Controller constructor
    * @author Ujjwal Bera
@@ -14,128 +12,104 @@ class CONTROLLER_CAMEL_CASE_PLURAL_FORMController extends controller {
    */
   constructor(service) {
     super(service);
-    //autoBind(this);
+    this.service = service;
   }
 
-  /**
-   * @description Fetch list of CONTROLLER_CAMEL_CASE_SINGULARs
-   * @author Ujjwal Bera<ujjwalbera.dev@gmail.com>
-   * @param req : request
-   * @param transaction : transaction
-   * @returns {*}
-   */
-  async getAll(req, transaction) {
-    const result = await CONTROLLER_CAMEL_CASE_SINGULARService.getAll(
-      req.query,
-      { transaction }
-    );
-    if (result === undefined || result === null)
-      throw new BaseError(
-        __('SINGULAR_PROCESS_NAME_UPPERCASES_LIST_FETCH_ERROR')
-      );
-    return {
-      code: 200,
-      result,
-      message: 'SINGULAR_PROCESS_NAME_UPPERCASES_LIST_FETCH_SUCESSFULLY',
-    };
+  async findAll({ query }, { transaction }) {
+    const response = await this.service.findAll(query, { transaction });
+    const items = Base.toLabelPluralize(this.name);
+    if (response) {
+      return {
+        code: 200,
+        result: response,
+        message: __('ITEMS_LIST_FETCH_SUCESSFULLY', { items: items }),
+      };
+    }
   }
 
-  /**
-   * @description Create a new CONTROLLER_CAMEL_CASE_SINGULAR
-   * @author Ujjwal Bera<ujjwalbera.dev@gmail.com>
-   * @param req : request
-   * @param transaction : transaction
-   * @returns {*}
-   */
-  async create(req, transaction) {
-    const { name } = req.body;
-    const result = await CONTROLLER_CAMEL_CASE_SINGULARService.create(
-      { name },
-      { transaction }
-    );
-    if (result === undefined || result === null)
-      throw new BaseError(__('UNABLE_TO_ADD_SINGULAR_PROCESS_NAME_UPPERCASE'));
-    return {
-      code: 201,
-      result,
-      message: 'SINGULAR_PROCESS_NAME_UPPERCASE_ADDED_SUCESSFULLY',
-    };
-  }
-
-  /**
-   * @description Fetch CONTROLLER_CAMEL_CASE_SINGULAR details by primary key
-   * @author Ujjwal Bera<ujjwalbera.dev@gmail.com>
-   * @param req : request
-   * @param transaction : transaction
-   * @returns {*}
-   */
-  async findByPk(req, transaction) {
-    const id = req.params.id;
-    const result = await CONTROLLER_CAMEL_CASE_SINGULARService.findByPk(id, {
+  async findByPk({ params }, { transaction }) {
+    const { id } = params;
+    const response = await this.service.findByPk(parseInt(id), {
       transaction,
     });
-    if (result === undefined || result === null)
-      throw new BaseError(
-        __('UNABLE_TO_FETCH_SINGULAR_PROCESS_NAME_UPPERCASE')
-      );
-    return {
-      code: 200,
-      result,
-      message: 'SINGULAR_PROCESS_NAME_UPPERCASE_DEATILS_FETCHED_SUCESSFULLY',
-    };
+    const item = Base.toLabelSingular(this.name);
+    if (response) {
+      return {
+        code: 200,
+        result: response,
+        message: __('ITEM_DETAIL_FETCH_SUCESSFULLY', { item: item }),
+      };
+    }
+    throw new BaseError('Some error occurred while fetching item details.');
   }
 
-  /**
-   * @description Update CONTROLLER_CAMEL_CASE_SINGULAR details by primary key
-   * @author Ujjwal Bera<ujjwalbera.dev@gmail.com>
-   * @param req : request
-   * @param transaction : transaction
-   * @returns {*}
-   */
-  async updateByPk(req, transaction) {
-    const id = req.params.id;
-    const { name, status } = req.body;
-    const result = await CONTROLLER_CAMEL_CASE_SINGULARService.updateByPk(
-      id,
-      { name, status },
-      { transaction }
-    );
-    if (result === undefined || result === null)
-      throw new BaseError(
-        __('UNABLE_TO_UPDATE_SINGULAR_PROCESS_NAME_UPPERCASE')
-      );
-    return {
-      code: 200,
-      result,
-      message: 'SINGULAR_PROCESS_NAME_UPPERCASE_UPDATED_SUCESSFULLY',
-    };
+  async createOne({ body }, { transaction, user }) {
+    const response = await this.service.createOne(body, { transaction, user });
+    if (response) {
+      return {
+        code: 200,
+        result: response,
+        message: 'The new item was added successfully.',
+      };
+    }
+    throw new BaseError('Some error occurred while adding the new item.');
   }
 
-  /**
-   * @description Delete CONTROLLER_CAMEL_CASE_SINGULAR by primary key
-   * @author Ujjwal Bera<ujjwalbera.dev@gmail.com>
-   * @param req : request
-   * @param transaction : transaction
-   * @returns {*}
-   */
-  async deleteByPk(req, res, next) {
-    const id = req.params.id;
-    const result = await CONTROLLER_CAMEL_CASE_SINGULARService.deleteByPk(
-      id,
-      { ...req.body },
-      { transaction }
-    );
-    if (result === undefined || result === null)
-      throw new BaseError(
-        __('UNABLE_TO_UPDATE_SINGULAR_PROCESS_NAME_UPPERCASE')
-      );
-    return {
-      code: 200,
-      result,
-      message: 'SINGULAR_PROCESS_NAME_UPPERCASE_UPDATED_SUCESSFULLY',
-    };
+  async updateByPk({ body, params }, { transaction, user }) {
+    const { id } = params;
+    console.info(user);
+    const response = await this.service.updateByPk(parseInt(id), body, {
+      transaction,
+      user,
+    });
+
+    if (response) {
+      return {
+        code: 200,
+        result: response,
+        message: 'The item was updated successfully.',
+      };
+    }
+    throw new BaseError('Some error occurred while updating the item.');
+  }
+
+  async switchStatusByPk({ params }, { transaction, user }) {
+    const { id } = params;
+    const response = await this.service.switchStatusByPk(parseInt(id), {
+      transaction,
+      user,
+    });
+
+    if (response) {
+      return {
+        code: 200,
+        result: response,
+        message: 'The item was updated successfully.',
+      };
+    }
+    throw new BaseError('Some error occurred while updating the item.');
+  }
+
+  async deleteById({ params }, { transaction, user }) {
+    const { id } = params;
+    const response = await this.service.deleteById(parseInt(id), {
+      transaction,
+      user,
+    });
+    if (response) {
+      return {
+        code: 200,
+        result: response,
+        message: 'The item was deleted successfully.',
+      };
+    }
+    throw new BaseError('Some error occurred while deleting the item.');
   }
 }
+
+const CONTROLLER_CAMEL_CASE_SINGULARService = MODEL_SINGULAR_FORM.getInstance(
+  'MODEL_SINGULAR_FORM'
+);
 
 export default new CONTROLLER_CAMEL_CASE_PLURAL_FORMController(
   CONTROLLER_CAMEL_CASE_SINGULARService

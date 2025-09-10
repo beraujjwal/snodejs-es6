@@ -1,9 +1,10 @@
 'use strict';
 
 async function up({ context: queryInterface }) {
+  const dbName = queryInterface.sequelize.getDialect();
   await queryInterface
     .bulkInsert(
-      'menus',
+      'acl_menus',
       [
         {
           id: 1,
@@ -11,6 +12,8 @@ async function up({ context: queryInterface }) {
           name: 'Dashboard',
           slug: 'dashboard',
           status: true,
+          lastActivityBy: 1,
+          deletedAt: null,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -20,6 +23,8 @@ async function up({ context: queryInterface }) {
           name: 'User',
           slug: 'user',
           status: true,
+          lastActivityBy: 1,
+          deletedAt: null,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -29,6 +34,8 @@ async function up({ context: queryInterface }) {
           name: 'User Management',
           slug: 'user-management',
           status: true,
+          lastActivityBy: 1,
+          deletedAt: null,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -38,6 +45,8 @@ async function up({ context: queryInterface }) {
           name: 'ACL Management',
           slug: 'acl-management',
           status: true,
+          lastActivityBy: 1,
+          deletedAt: null,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -47,6 +56,8 @@ async function up({ context: queryInterface }) {
           name: 'Role Section',
           slug: 'role-section',
           status: true,
+          lastActivityBy: 1,
+          deletedAt: null,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -56,6 +67,8 @@ async function up({ context: queryInterface }) {
           name: 'Resource Section',
           slug: 'resource-section',
           status: true,
+          lastActivityBy: 1,
+          deletedAt: null,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -65,6 +78,8 @@ async function up({ context: queryInterface }) {
           name: 'Permission Section',
           slug: 'permission-section',
           status: true,
+          lastActivityBy: 1,
+          deletedAt: null,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -74,6 +89,8 @@ async function up({ context: queryInterface }) {
           name: 'Menu Section',
           slug: 'menu-section',
           status: true,
+          lastActivityBy: 1,
+          deletedAt: null,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -85,13 +102,15 @@ async function up({ context: queryInterface }) {
       throw ex;
     });
 
-  await queryInterface.sequelize.query(
-    "SELECT setval('menus_id_seq', (SELECT MAX(id) FROM menus))"
-  );
+  if (dbName === 'postgres') {
+    await queryInterface.sequelize.query(
+      "SELECT setval('acl_menus_id_seq', (SELECT MAX(id) FROM acl_menus))"
+    );
+  }
 }
 
 async function down({ context: queryInterface }) {
-  await queryInterface.bulkDelete('menus', null, {}).catch((ex) => {
+  await queryInterface.bulkDelete('acl_menus', null, {}).catch((ex) => {
     console.error(ex);
     throw ex;
   });

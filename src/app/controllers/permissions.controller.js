@@ -5,8 +5,6 @@ import { BaseError } from '../../system/core/error/baseError.js';
 import Controller from './controller.js';
 import Permission from '../services/permission.service.js';
 
-const permissionService = new Permission('Permission');
-
 class PermissionsController extends Controller {
   /**
    * Controller constructor
@@ -158,4 +156,5 @@ class PermissionsController extends Controller {
   }
 }
 
+const permissionService = new Permission('Permission');
 export default new PermissionsController(permissionService);

@@ -1,17 +1,23 @@
 'use strict';
-import { DataTypes, Model } from 'sequelize';
-import { sequelize } from '../system/core/db.connection.js';
+import { sequelize, DataTypes, Model } from '../system/core/db.connection.js';
+import { BaseModel } from '../system/core/model/base.model.js';
 
-class Country extends Model {
+class Country extends BaseModel {
+  static autoRegisterCommonHooks = false;
   static associate(models) {
     this.hasMany(models.State, { foreignKey: 'countryID', as: 'states' });
+    this.belongsTo(models.Region, { foreignKey: 'regionID', as: 'region' });
+    this.belongsTo(models.SubRegion, {
+      foreignKey: 'subRegionID',
+      as: 'subRegion',
+    });
   }
 }
 
 Country.init(
   {
     id: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
@@ -63,20 +69,20 @@ Country.init(
       allowNull: false,
     },
     regionID: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'regions',
+        model: 'gnrl_regions',
         key: 'id',
       },
       onUpdate: 'CASCADE',
       onDelete: 'RESTRICT',
     },
     subRegionID: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'sub_regions',
+        model: 'gnrl_sub_regions',
         key: 'id',
       },
       onUpdate: 'CASCADE',
@@ -118,23 +124,40 @@ Country.init(
   {
     sequelize,
     modelName: 'Country',
-    tableName: 'countries',
-    timestamps: true,
-    paranoid: true,
+    tableName: 'gnrl_countries',
+    timestamps: true, // Automatically adds `createdAt` and `updatedAt`
+    paranoid: true, // Enables `deletedAt` for soft deletes
+    footprint: true, // Enables `lastActivityBy` for last user activity
     defaultScope: {
       attributes: {
         exclude: ['deletedAt'],
       },
-      where: {
-        status: true,
-      },
     },
     scopes: {
-      activeCountries: {
+      active: {
         where: {
           status: true,
         },
       },
+    },
+    indexes: [
+      {
+        name: 'idx_unique_gnrl_countries_iso2',
+        unique: true,
+        fields: ['iso2'],
+      },
+      {
+        name: 'idx_unique_gnrl_countries_iso3',
+        unique: true,
+        fields: ['iso3'],
+      },
+      { name: 'idx_gnrl_countries_name', fields: ['name'] },
+      { name: 'idx_gnrl_countries_phone_code', fields: ['phoneCode'] },
+      { name: 'idx_gnrl_countries_numeric_code', fields: ['numericCode'] },
+      { name: 'idx_gnrl_countries_status', fields: ['status'] },
+    ],
+    hooks: {
+      beforeValidate: async (model, options) => {},
     },
   }
 );

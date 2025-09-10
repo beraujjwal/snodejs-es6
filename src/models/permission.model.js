@@ -1,9 +1,19 @@
 'use strict';
-import { DataTypes, Model } from 'sequelize';
-import { sequelize } from '../system/core/db.connection.js';
-import slugify from 'slugify';
+import { sequelize, DataTypes, Model } from '../system/core/db.connection.js';
+import { BaseModel } from '../system/core/model/base.model.js';
 
-class Permission extends Model {
+class Permission extends BaseModel {
+  // ✅ Per-model configuration
+  static autoRegisterCommonHooks = true;
+  static enableSlug = true;
+  static slugField = 'name';
+  static slugTargetField = 'slug';
+
+  static enableOrder = true;
+  static orderField = 'order';
+
+  static forceStatus = true;
+
   static associate(models) {
     // Many-to-Many: Permission <-> Resource
     this.belongsToMany(models.Resource, {
@@ -55,7 +65,7 @@ class Permission extends Model {
 Permission.init(
   {
     id: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
@@ -63,7 +73,6 @@ Permission.init(
     name: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
       validate: {
         notEmpty: true,
       },
@@ -87,33 +96,29 @@ Permission.init(
   {
     sequelize,
     modelName: 'Permission',
-    tableName: 'permissions',
-    timestamps: true,
-    paranoid: true,
-    indexes: [{ unique: true, fields: ['name', 'slug'] }],
+    tableName: 'acl_permissions',
+    timestamps: true, // Automatically adds `createdAt` and `updatedAt`
+    paranoid: true, // Enables `deletedAt` for soft deletes
+    footprint: true, // Enables `lastActivityBy` for last user activity
     defaultScope: {
       attributes: {
         exclude: ['deletedAt'],
-      }
-    },
-    hooks: {
-      beforeValidate: (model) => {
-        if (typeof model.name === 'string') {
-          model.slug = slugify(model.name, { lower: true, strict: true });
-        }
-        if (model.status !== false) {
-          model.status = true;
-        }
-      }
-    },
-    setterMethods: {
-      name(value) {
-        this.setDataValue('name', value.toString());
-        this.setDataValue(
-          'slug',
-          slugify(value, { lower: true, strict: true })
-        );
       },
+    },
+    scopes: {
+      active: { where: { status: true } },
+    },
+    indexes: [
+      {
+        name: 'idx_unique_acl_permissions_slug',
+        unique: true,
+        fields: ['slug'],
+      },
+      { name: 'idx_acl_permissions_name', fields: ['name'] },
+      { name: 'idx_acl_permissions_status', fields: ['status'] },
+    ],
+    hooks: {
+      beforeValidate: async (model, options) => {},
     },
   }
 );

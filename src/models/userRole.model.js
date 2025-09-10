@@ -1,7 +1,8 @@
 'use strict';
 import { sequelize, DataTypes, Model } from '../system/core/db.connection.js';
+import { BaseModel } from '../system/core/model/base.model.js';
 
-class UserRole extends Model {
+class UserRole extends BaseModel {
   static associate(models) {
     this.belongsTo(models.User, {
       foreignKey: 'userID',
@@ -18,17 +19,17 @@ class UserRole extends Model {
 UserRole.init(
   {
     id: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
     },
     userID: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       allowNull: false,
       references: {
         model: {
-          tableName: 'users',
+          tableName: 'gnrl_users',
           modelName: 'User',
         },
         key: 'id',
@@ -37,11 +38,11 @@ UserRole.init(
       onDelete: 'RESTRICT',
     },
     roleID: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       allowNull: false,
       references: {
         model: {
-          tableName: 'roles',
+          tableName: 'acl_roles',
           modelName: 'Role',
         },
         key: 'id',
@@ -59,10 +60,9 @@ UserRole.init(
   {
     sequelize,
     modelName: 'UserRole',
-    tableName: 'user_roles',
-    timestamps: true,
-    paranoid: true,
-    indexes: [{ unique: true, fields: ['userID', 'roleID'] }],
+    tableName: 'acl_user_roles',
+    timestamps: true, // Automatically adds `createdAt` and `updatedAt`
+    paranoid: true, // Enables `deletedAt` for soft deletes
     defaultScope: {
       attributes: {
         exclude: ['deletedAt'],
@@ -71,12 +71,15 @@ UserRole.init(
         status: true,
       },
     },
-    scopes: {
-      activeUserRoles: {
-        where: {
-          status: true,
-        },
+    indexes: [
+      {
+        name: 'idx_unique_acl_user_roles_fks',
+        unique: true,
+        fields: ['roleID', 'userID', 'status'],
       },
+    ],
+    hooks: {
+      beforeValidate: async (model, options) => {},
     },
   }
 );

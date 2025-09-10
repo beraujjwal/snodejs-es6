@@ -1,8 +1,9 @@
 'use strict';
-import { DataTypes, Model } from 'sequelize';
-import { sequelize } from '../system/core/db.connection.js';
+import { sequelize, DataTypes, Model } from '../system/core/db.connection.js';
+import { BaseModel } from '../system/core/model/base.model.js';
 
-class RoleResourcePermission extends Model {
+class RoleResourcePermission extends BaseModel {
+  static autoRegisterCommonHooks = false;
   static associate(models) {
     this.belongsTo(models.Role, { foreignKey: 'roleID' });
     this.belongsTo(models.Resource, { foreignKey: 'resourceID' });
@@ -13,29 +14,29 @@ class RoleResourcePermission extends Model {
 RoleResourcePermission.init(
   {
     id: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
     },
     roleID: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       allowNull: false,
-      references: { model: 'roles', key: 'id' },
+      references: { model: 'acl_roles', key: 'id' },
       onUpdate: 'CASCADE',
       onDelete: 'RESTRICT',
     },
     resourceID: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       allowNull: false,
-      references: { model: 'resources', key: 'id' },
+      references: { model: 'acl_resources', key: 'id' },
       onUpdate: 'CASCADE',
       onDelete: 'RESTRICT',
     },
     permissionID: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       allowNull: false,
-      references: { model: 'permissions', key: 'id' },
+      references: { model: 'acl_permissions', key: 'id' },
       onUpdate: 'CASCADE',
       onDelete: 'RESTRICT',
     },
@@ -49,7 +50,7 @@ RoleResourcePermission.init(
   {
     sequelize,
     modelName: 'RoleResourcePermission',
-    tableName: 'role_resource_permissions',
+    tableName: 'acl_role_resource_permissions',
     timestamps: true,
     paranoid: true,
     indexes: [

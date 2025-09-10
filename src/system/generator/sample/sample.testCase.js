@@ -1,189 +1,214 @@
-const { chai, server, should } = require('./testConfig');
-const db = require('../system/core/model');
-
 /**
- * Test cases to test all the SINGULAR_SAMLL_CASE APIs
- * Covered Routes:
- * (1) Login
- * (2) Get all PLURAL_SAMLL_CASE
- * (3) Store SINGULAR_SAMLL_CASE
- * (4) Get single SINGULAR_SAMLL_CASE
- * (5) Update SINGULAR_SAMLL_CASE
- * (6) Delete SINGULAR_SAMLL_CASE
+ * @jest-environment node
  */
+import { jest } from '@jest/globals';
+import { BaseError } from '../src/system/core/error/baseError.js';
 
-describe('MODEL_SINGULAR_FORM', () => {
-  //Before each test we empty the database
-  /*before((done) => {
-    db.MODEL_SINGULAR_FORM.deleteMany({}, (err) => {
-      done();
-    });
-  });*/
+/* ------------------------------------------------------------------------- */
+/* 1.  Create a fresh mocked service object for every test run               */
+/* ------------------------------------------------------------------------- */
+const mockRoleService = () => ({
+  findAllRoles: jest.fn(),
+  rolesList: jest.fn(),
+  roleStore: jest.fn(),
+  findOneRole: jest.fn(),
+  roleUpdate: jest.fn(),
+  roleCanDelete: jest.fn(),
+  roleDelete: jest.fn(),
+});
 
-  // Prepare data for testing
-  const userTestData = {
-    password: '123456',
-    username: 'anna.jones@mail.com',
+/* ------------------------------------------------------------------------- */
+/* 2.  Mock the `role.service.js` module *before* importing the controller   */
+/* ------------------------------------------------------------------------- */
+jest.unstable_mockModule('../src/app/services/role.service.js', () => {
+  const service = mockRoleService();
+  return {
+    /* RolesController does `Role.getInstance('Role')`                       */
+    /* So we export getInstance that always hands back the same mock object */
+    getInstance: jest.fn(() => service),
+    /* Optional: allow tests to reach the current mock instance             */
+    __esModule: true,
+    default: service,
   };
-  var loginResponse, SINGULAR_SAMLL_CASEData;
+});
 
-  // Prepare data for testing
-  const testData = {
-    name: 'Lorem ipsum dolor sit amet',
-  };
-  const createdID = [];
+/* ------------------------------------------------------------------------- */
+/* 3.  Stub the i18n helper used inside BaseError (`__('...')`)              */
+/* ------------------------------------------------------------------------- */
+global.__ = (msg) => msg; // no-op translator
 
-  /*
-   * Test the /POST route
-   */
-  describe('/POST Login', () => {
-    it('it should do user Login for SINGULAR_SAMLL_CASE', (done) => {
-      chai
-        .request(server)
-        .post('/api/v1.0/auth/signin')
-        .send({
-          username: userTestData.username,
-          password: userTestData.password,
-        })
-        .end((err, res) => {
-          res.should.have.status(200);
-          res.body.should.have.property('error').eql(false);
-          loginResponse = res.body.data;
-          done();
-        });
+/* ------------------------------------------------------------------------- */
+/* 4.  Import the controller AFTER the mocks are registered                  */
+/* ------------------------------------------------------------------------- */
+import RolesController from '../src/app/controllers/roles.controller.js';
+
+/* ------------------------------------------------------------------------- */
+/* 5.  Grab the service instance Jest returned from our manual mock          */
+/* ------------------------------------------------------------------------- */
+import RoleServiceMockModule from '../src/app/services/role.service.js';
+const roleService = RoleServiceMockModule.getInstance();
+
+/* ------------------------------------------------------------------------- */
+/* 6.  Helper: empty “transaction” object—we don’t use it in unit tests      */
+/* ------------------------------------------------------------------------- */
+const tx = { transaction: null };
+
+describe('RolesController', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  /* ---------------------------------------------------- */
+  /*  SUCCESS branch: rolesList                           */
+  /* ---------------------------------------------------- */
+  it('rolesList → returns list & 200 status', async () => {
+    const fakeRoles = [{ id: 1, name: 'Admin' }];
+    roleService.findAllRoles.mockResolvedValue(fakeRoles);
+
+    const result = await RolesController.rolesList({ query: {} }, tx);
+
+    expect(roleService.findAllRoles).toHaveBeenCalledWith({ query: {} }, tx);
+    expect(result).toEqual({
+      code: 200,
+      result: fakeRoles,
+      message: 'ROLES_LIST_FETCH_SUCESSFULLY',
     });
   });
 
-  /*
-   * Test the /GET route
-   */
-  describe('/GET All PLURAL_SAMLL_CASE', () => {
-    it('it should GET all the PLURAL_SAMLL_CASE', (done) => {
-      chai
-        .request(server)
-        .get('/api/v1.0/PLURAL_SAMLL_CASE')
-        .set('x-access-token', loginResponse.accessToken)
-        .end((err, res) => {
-          res.should.have.status(200);
-          res.body.should.have.property('error').eql(false);
-          done();
-        });
+  /* ---------------------------------------------------- */
+  /*  ERROR branch: rolesList                             */
+  /* ---------------------------------------------------- */
+  it('rolesList → throws BaseError when service returns null', async () => {
+    roleService.findAllRoles.mockResolvedValue(null);
+
+    await expect(
+      RolesController.rolesList({ query: {} }, tx)
+    ).rejects.toBeInstanceOf(BaseError);
+  });
+
+  /* ---------------------------------------------------- */
+  /*  rolesDDLList                                        */
+  /* ---------------------------------------------------- */
+  it('rolesDDLList → adds return_type=ddl & returns data', async () => {
+    const fakeRoles = [{ id: 1, label: 'Admin' }];
+    roleService.rolesList.mockResolvedValue(fakeRoles);
+
+    const query = {};
+    const result = await RolesController.rolesDDLList({ query }, tx);
+
+    expect(query.return_type).toBe('ddl'); // mutated query
+    expect(roleService.rolesList).toHaveBeenCalledWith(query);
+    expect(result).toEqual({
+      code: 200,
+      result: fakeRoles,
+      message: 'Roles list for DDL got successfully.',
     });
   });
 
-  /*
-   * Test the /POST route
-   */
-  describe('/POST MODEL_SINGULAR_FORM store blank data submited', () => {
-    it('It should send validation error for store SINGULAR_SAMLL_CASE', (done) => {
-      chai
-        .request(server)
-        .post('/api/v1.0/SINGULAR_SAMLL_CASE')
-        .send()
-        .set('x-access-token', loginResponse.accessToken)
-        .end((err, res) => {
-          res.should.have.status(200);
-          res.body.should.have.property('error').eql(true);
-          done();
-        });
+  /* ---------------------------------------------------- */
+  /*  roleStore                                           */
+  /* ---------------------------------------------------- */
+  it('roleStore → creates role & returns 201', async () => {
+    const payload = {
+      parent: null,
+      name: 'Manager',
+      description: '',
+      resources: [],
+      status: true,
+    };
+    const created = { id: 42, ...payload };
+    roleService.roleStore.mockResolvedValue(created);
+
+    const result = await RolesController.roleStore({ body: payload }, tx);
+
+    expect(roleService.roleStore).toHaveBeenCalledWith(payload, tx);
+    expect(result).toEqual({
+      code: 201,
+      result: created,
+      message: 'New role created successfully.',
     });
   });
 
-  /*
-   * Test the /POST route
-   */
-  describe('/POST MODEL_SINGULAR_FORM store', () => {
-    it('It should store SINGULAR_SAMLL_CASE', (done) => {
-      chai
-        .request(server)
-        .post('/api/v1.0/SINGULAR_SAMLL_CASE')
-        .send(testData)
-        .set('x-access-token', loginResponse.accessToken)
-        .end((err, res) => {
-          res.should.have.status(200);
-          res.body.should.have.property('error').eql(false);
-          SINGULAR_SAMLL_CASEData = res.body.data;
-          createdID.push(SINGULAR_SAMLL_CASEData.id);
-          done();
-        });
-    });
+  /* ---------------------------------------------------- */
+  /*  roleDetails (success & failure)                     */
+  /* ---------------------------------------------------- */
+  it('roleDetails → returns role info', async () => {
+    const role = { id: 7, name: 'Editor' };
+    roleService.findOneRole.mockResolvedValue(role);
+
+    const result = await RolesController.roleDetails({ params: { id: 7 } }, tx);
+
+    expect(roleService.findOneRole).toHaveBeenCalledWith(7, tx);
+    expect(result.code).toBe(201);
   });
 
-  /*
-   * Test the /GET/:id route
-   */
-  describe('/GET/:id SINGULAR_SAMLL_CASE', () => {
-    it('it should GET the SINGULAR_SAMLL_CASE', (done) => {
-      chai
-        .request(server)
-        .get('/api/v1.0/SINGULAR_SAMLL_CASE/' + SINGULAR_SAMLL_CASEData.id)
-        .set('x-access-token', loginResponse.accessToken)
-        .end((err, res) => {
-          res.should.have.status(200);
-          res.body.should.have.property('error').eql(false);
-          done();
-        });
-    });
+  it('roleDetails → throws BaseError when not found', async () => {
+    roleService.findOneRole.mockResolvedValue(null);
+    await expect(
+      RolesController.roleDetails({ params: { id: 999 } }, tx)
+    ).rejects.toBeInstanceOf(BaseError);
   });
 
-  /*
-   * Test the /PUT/:id route
-   */
-  describe('/PUT/:id SINGULAR_SAMLL_CASE', () => {
-    it('it should not update the SINGULAR_SAMLL_CASE', (done) => {
-      chai
-        .request(server)
-        .put('/api/v1.0/SINGULAR_SAMLL_CASE/' + SINGULAR_SAMLL_CASEData.id)
-        .send()
-        .set('x-access-token', loginResponse.accessToken)
-        .end((err, res) => {
-          res.should.have.status(200);
-          res.body.should.have.property('error').eql(true);
-          done();
-        });
-    });
+  /* ---------------------------------------------------- */
+  /*  roleUpdate                                          */
+  /* ---------------------------------------------------- */
+  it('roleUpdate → updates role & returns 200', async () => {
+    const updated = { id: 7, name: 'Editor 2' };
+    roleService.roleUpdate.mockResolvedValue(updated);
+
+    const body = {
+      parent: null,
+      name: 'Editor 2',
+      description: '',
+      resources: [],
+      status: true,
+    };
+    const result = await RolesController.roleUpdate(
+      { body, params: { id: 7 } },
+      tx
+    );
+
+    expect(roleService.roleUpdate).toHaveBeenCalledWith(7, body, tx);
+    expect(result.code).toBe(200);
   });
 
-  /*
-   * Test the /PUT/:id route
-   */
-  describe('/PUT/:id SINGULAR_SAMLL_CASE', () => {
-    it('it should PUT the SINGULAR_SAMLL_CASE', (done) => {
-      let updatedTestData = { ...testData, status: true };
-      chai
-        .request(server)
-        .put('/api/v1.0/SINGULAR_SAMLL_CASE/' + SINGULAR_SAMLL_CASEData.id)
-        .send(updatedTestData)
-        .set('x-access-token', loginResponse.accessToken)
-        .end((err, res) => {
-          res.should.have.status(200);
-          res.body.should.have.property('error').eql(false);
-          done();
-        });
-    });
-  });
+  /* ---------------------------------------------------- */
+  /*  roleCanDelete & roleDelete                          */
+  /* ---------------------------------------------------- */
+  describe('roleCanDelete / roleDelete', () => {
+    /*  These two methods rely on res.status(...).json(...) chains.          */
+    /*  To unit-test them we stub an Express-like response object.           */
+    const makeRes = () => {
+      const json = jest.fn();
+      const status = jest.fn(() => ({ json }));
+      return { status, json };
+    };
 
-  /*
-   * Test the /DELETE/:id route
-   */
-  describe('/DELETE/:id SINGULAR_SAMLL_CASE', () => {
-    it('it should DELETE the SINGULAR_SAMLL_CASE', (done) => {
-      chai
-        .request(server)
-        .delete('/api/v1.0/SINGULAR_SAMLL_CASE/' + SINGULAR_SAMLL_CASEData.id)
-        .set('x-access-token', loginResponse.accessToken)
-        .end((err, res) => {
-          res.should.have.status(200);
-          res.body.should.have.property('error').eql(false);
-          done();
-        });
-    });
-  });
+    it('roleCanDelete → sends 200 JSON when deletable', async () => {
+      roleService.roleCanDelete.mockResolvedValue({ canDelete: true });
 
-  after((done) => {
-    createdID.forEach((id) => {
-      db.MODEL_SINGULAR_FORM.findByIdAndRemove(id);
+      const res = makeRes();
+      await RolesController.roleCanDelete(
+        { params: { id: 5 } },
+        { transaction: null, res } // pass res in *second* arg bag
+      );
+
+      expect(roleService.roleCanDelete).toHaveBeenCalledWith(5);
+      expect(res.status).toHaveBeenCalledWith(200);
+      // `this.success` just wraps, so we check json called at all
+      expect(res.status().json).toHaveBeenCalled();
     });
-    done();
+
+    it('roleDelete → sends 200 JSON when deleted', async () => {
+      roleService.roleDelete.mockResolvedValue({ deleted: 1 });
+
+      const res = makeRes();
+      await RolesController.roleDelete(
+        { params: { id: 5 } },
+        { transaction: null, res }
+      );
+
+      expect(roleService.roleDelete).toHaveBeenCalledWith(5, tx);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.status().json).toHaveBeenCalled();
+    });
   });
 });

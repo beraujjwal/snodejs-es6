@@ -9,12 +9,12 @@ import Token from '../services/token.service.js';
 import { registrationVerificationEmail } from '../../libraries/email.library.js';
 import { encrypt, decrypt } from '../../helpers/encodeDecode.js';
 
-// import {
-//   keyExists,
-//   setValue,
-//   getValue,
-//   deleteValue,
-// } from '../../libraries/redis.library.js';
+import {
+  keyExists,
+  setValue,
+  getValue,
+  deleteValue,
+} from '../../libraries/redis.library.js';
 
 class AuthController extends Controller {
   /**
@@ -22,11 +22,110 @@ class AuthController extends Controller {
    * @author Ujjwal Bera
    * @param {service} service - Service layer object
    */
-  constructor(service, userDeviceService, tokenService) {
+  constructor(service) {
     super(service);
     this.service = service;
-    this.userDeviceService = userDeviceService;
-    this.tokenService = tokenService;
+  }
+
+  get userDeviceService() {
+    if (!this._userDeviceService) {
+      this._userDeviceService = UserDevice.getInstance('UserDevice');
+    }
+    return this._userDeviceService;
+  }
+
+  get tokenService() {
+    if (!this._tokenService) {
+      this._tokenService = Token.getInstance('Token');
+    }
+    return this._tokenService;
+  }
+
+  async checkUserExistsByEmail({ body }, { transaction }) {
+    const { email, roles } = body;
+
+    const userExists = await this.service.checkUserExistsByEmail(
+      { email, roles },
+      { transaction }
+    );
+    let isUserExists = userExists ? true : false;
+    return {
+      code: 200,
+      result: { userExists: isUserExists },
+      message: 'User exists checked successfully!',
+    };
+  }
+
+  /**
+   * @desc Registers a new user with the provided details
+   * @param {Object} body - The request body containing name, email, phone, password, and roles
+   * @param {Object} transaction - The transaction object for database operations
+   * @returns {Object} An object containing the status code, result, and message
+   * @throws {baseError} If the registration process fails
+   */
+  async signup({ body }, { transaction }) {
+    const { first_name, last_name, email, ext, phone, roles, password } = body;
+
+    const user = await this.service.signup(
+      { first_name, last_name, email, ext, phone, password, roles },
+      { transaction }
+    );
+    if (!user)
+      throw new BaseError(
+        'Some error occurred while creating user account. Please try again.',
+        500
+      );
+
+    const tokenServiceResult = await this.tokenService.createToken(
+      {
+        userId: user.user.id,
+        sentFor: 'ACTIVATION',
+        sentOn: user.user.email,
+      },
+      { transaction }
+    );
+    if (user) {
+      return {
+        code: 201,
+        result: user,
+        message: 'User created successfully!',
+      };
+    }
+    throw new BaseError(
+      'Some error occurred while verify your account. Please try again.',
+      500
+    );
+  }
+
+  async verificationTenantAccount({ params }, { transaction }) {
+    const { identifier, verificationToken } = params;
+    const email = decrypt(identifier);
+    const token = decrypt(verificationToken);
+
+    const verificationTokenResult = await this.tokenService.verificationToken(
+      email,
+      token,
+      { transaction }
+    );
+    if (!verificationTokenResult)
+      throw new BaseError('Invalid varification.', 403);
+
+    const userInfo = await this.service.verifyTenantAccount(
+      verificationTokenResult.userID,
+      { transaction }
+    );
+
+    if (userInfo) {
+      return {
+        code: 200,
+        result: userInfo,
+        message: 'Your account activated successfully!',
+      };
+    }
+    throw new BaseError(
+      'Some error occurred while verify your account. Please try again.',
+      500
+    );
   }
 
   /**
@@ -60,7 +159,7 @@ class AuthController extends Controller {
    * @returns {Object} An object containing the status code, result, and message
    * @throws {baseError} If the login process fails
    */
-  async login({ body, deviceInfo }, { transaction }) {
+  async login({ body }, { transaction, deviceInfo }) {
     let message = 'Please complete your signup process!';
     const { username, password } = body;
 
@@ -70,7 +169,7 @@ class AuthController extends Controller {
     );
 
     const { browser, os, deviceId, deviceType, fcmToken, ip } = deviceInfo;
-    await this.userDeviceService.addNewDevice(
+    const latestUserDevice = await this.userDeviceService.addNewDevice(
       {
         userID: result.user.id,
         userToken: result.token.accessToken,
@@ -91,14 +190,12 @@ class AuthController extends Controller {
     } else if (result.user?.isCompleted) {
       message = 'Login token generated successfully!';
     }
+    result.user.userDevice = latestUserDevice;
 
     const userRedisKey = `user-${result.user.id}`;
-    setValue(
-      userRedisKey,
-      JSON.stringify({ ...result.user }),
-      this.getEnv('JWT_EXPIRES_IN')
-    );
+    setValue(userRedisKey, result.user, this.getEnv('JWT_EXPIRES_IN'));
 
+    //delete result.user.userDevices;
     return {
       code: 200,
       result,
@@ -296,11 +393,7 @@ class AuthController extends Controller {
 }
 
 const userService = User.getInstance('User');
-const userDeviceService = UserDevice.getInstance('UserDevice');
-const tokenService = Token.getInstance('Token');
+// const userDeviceService = UserDevice.getInstance('UserDevice');
+// const tokenService = Token.getInstance('Token');
 
-export default new AuthController(
-  userService,
-  userDeviceService,
-  tokenService
-);
+export default new AuthController(userService);

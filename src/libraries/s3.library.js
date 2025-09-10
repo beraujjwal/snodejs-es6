@@ -1,12 +1,31 @@
 'use strict';
 import fs from 'fs';
-import { GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
+import path from 'path';
+import { URL } from 'url';
+
+import {
+  GetObjectCommand,
+  PutObjectCommand,
+  CopyObjectCommand,
+  DeleteObjectCommand,
+} from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import mime from 'mime-types';
 import sharp from 'sharp';
 
 import client from '../helpers/s3.js';
 import config from '../config/s3.config.js';
+
+const __dirname = new URL('.', import.meta.url).pathname;
+const tmpDir = path.join(__dirname, '../../temp');
+
+const streamToString = async (stream) =>
+  new Promise((resolve, reject) => {
+    const chunks = [];
+    stream.on('data', (chunk) => chunks.push(chunk));
+    stream.on('error', reject);
+    stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
+  });
 
 export const downloadFile = async (bucket = config.bucketName, key) => {
   try {
@@ -47,8 +66,14 @@ export const downloadS3File = async (
   }
 };
 
-export const uploadFileInS3 = async (bucket = config.bucketName, Key) => {
-  const stream = new stream.Passthrough();
+export const uploadFileInS3 = async (
+  localPath,
+  key,
+  bucket = config.bucketName
+) => {
+  //const stream = new PassThrough();
+  const partialsPath = path.join(tmpDir, localPath);
+  const fileStream = fs.createReadStream(partialsPath);
 
   try {
     const uploadToS3 = new Upload({
@@ -58,15 +83,10 @@ export const uploadFileInS3 = async (bucket = config.bucketName, Key) => {
       leavePartsOnError: false, // optional manually handle dropped parts
       params: {
         Bucket: bucket, // whatever your bucket is in S3
-        Key, // file name
-        Body: stream, // Body is stream which enables streaming
+        Key: key, // file name
+        Body: fileStream, // Body is stream which enables streaming
       },
     });
-
-    // if write() returns false. You should pause writing until a drain event occurs
-    stream.write('Hello');
-    stream.end();
-
     await uploadToS3.done();
   } catch (ex) {
     throw new Error(ex.message);
@@ -268,4 +288,74 @@ export const bigFileUploadToS3 = async (
 export const getFileExtension = (filename) => {
   const parts = filename.split('.');
   return parts.length > 1 ? parts.pop() : ''; // Return the last part or an empty string if no extension
+};
+
+export const uploadHtmlEmailBodyToS3 = async (
+  htmlContent,
+  path,
+  bucket = config.bucketName
+) => {
+  try {
+    const name = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    const fileName = `${name}.html`;
+
+    const command = new PutObjectCommand({
+      Bucket: bucket,
+      Key: `${path}`,
+      Body: htmlContent,
+      ContentType: 'text/html',
+    });
+
+    await client.send(command);
+    return `${path}/${fileName}`;
+  } catch (ex) {
+    console.error('Upload error:', ex);
+    throw ex;
+  }
+};
+
+export const getHtmlFromS3 = async (key, bucket = config.bucketName) => {
+  const command = new GetObjectCommand({ Bucket: bucket, Key: key });
+  const { Body } = await s3.send(command);
+  return await streamToString(Body);
+};
+
+export const moveFile = async (
+  bucket,
+  oldKey,
+  newKey,
+  deleteOriginal = false
+) => {
+  // Step 1: Copy to new location
+  await s3.send(
+    new CopyObjectCommand({
+      Bucket: bucket,
+      CopySource: `${bucket}/${oldKey}`, // old bucket/key
+      Key: newKey, // new folder + new file name
+    })
+  );
+
+  // Step 2: Delete old file
+  if (deleteOriginal) {
+    await s3.send(
+      new DeleteObjectCommand({
+        Bucket: bucket,
+        Key: oldKey,
+      })
+    );
+  }
+
+  console.log(`Moved ${oldKey} → ${newKey}`);
+};
+
+export const deleteLocalFile = async (filePath) => {
+  try {
+    const partialsPath = path.join(tmpDir, filePath);
+    await fs.promises.unlink(partialsPath);
+    console.log(`Deleted ${filePath}`);
+    return true;
+  } catch (ex) {
+    console.error('Delete error:', ex);
+    throw ex;
+  }
 };

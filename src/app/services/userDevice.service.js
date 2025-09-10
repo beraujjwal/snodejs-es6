@@ -11,19 +11,19 @@ class UserDevice extends Service {
   constructor(model) {
     super(model);
     this.model = this.getModel(model);
+    this.name = model;
   }
 
   static getInstance(model) {
-    if (!this.instance) {
-      this.instance = new UserDevice(model);
+    if (!this.instances[model]) {
+      this.instances[model] = new UserDevice(model);
     }
-    return this.instance;
+    return this.instances[model];
   }
-
 
   async addNewDevice(data, { transaction }) {
     try {
-      await this.model.create( data, { transaction });
+      return await this.model.create(data, { transaction });
     } catch (ex) {
       console.error(ex);
       throw new BaseError(ex);

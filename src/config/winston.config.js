@@ -51,8 +51,14 @@ logger.stream = {
 };
 
 export class LoggerStream {
+  // write(message) {
+  //   logger.info(message.substring(0, message.lastIndexOf('\n')));
+  // }
   write(message) {
-    logger.info(message.substring(0, message.lastIndexOf('\n')));
+    const cleanMessage = message.trimEnd(); // removes all trailing whitespace/newlines
+    if (cleanMessage) {
+      logger.info(cleanMessage);
+    }
   }
 }
 

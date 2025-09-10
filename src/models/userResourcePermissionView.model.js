@@ -1,8 +1,9 @@
 'use strict';
-import { DataTypes, Model } from 'sequelize';
-import { sequelize } from '../system/core/db.connection.js';
+import { sequelize, DataTypes, Model } from '../system/core/db.connection.js';
+import { BaseModel } from '../system/core/model/base.model.js';
 
-class UserResourcePermissionView extends Model {
+class UserResourcePermissionView extends BaseModel {
+  static autoRegisterCommonHooks = false;
   static associate(models) {
     this.belongsTo(models.User, { foreignKey: 'userID' });
     this.belongsTo(models.Resource, { foreignKey: 'resourceID' });
@@ -13,17 +14,17 @@ class UserResourcePermissionView extends Model {
 UserResourcePermissionView.init(
   {
     id: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
     },
     userID: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       allowNull: false,
       references: {
         model: {
-          tableName: 'users',
+          tableName: 'gnrl_users',
           modelName: 'User',
         },
         key: 'id',
@@ -50,22 +51,22 @@ UserResourcePermissionView.init(
       allowNull: true,
     },
     resourceID: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       allowNull: false,
       references: {
         model: {
-          tableName: 'resources',
+          tableName: 'acl_resources',
           modelName: 'Resource',
         },
         key: 'id',
       },
     },
     resourceParentID: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       allowNull: true,
       references: {
         model: {
-          tableName: 'resources',
+          tableName: 'acl_resources',
           modelName: 'Resource',
         },
         key: 'id',
@@ -82,11 +83,11 @@ UserResourcePermissionView.init(
       allowNull: true,
     },
     permissionID: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       allowNull: false,
       references: {
         model: {
-          tableName: 'permissions',
+          tableName: 'acl_permissions',
           modelName: 'Permission',
         },
         key: 'id',

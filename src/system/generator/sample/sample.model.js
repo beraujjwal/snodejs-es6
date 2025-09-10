@@ -1,32 +1,52 @@
 'use strict';
-import { DataTypes, Model } from 'sequelize';
-import { sequelize } from '../system/core/db.connection.js';
+import { sequelize, DataTypes, Model } from '../system/core/db.connection.js';
+import { BaseModel } from '../system/core/model/base.model.js';
 
-class MODEL_SINGULAR_FORM extends Model {
+class MODEL_SINGULAR_FORM extends BaseModel {
+  // ✅ Per-model configuration
+  static autoRegisterCommonHooks = true;
+  static enableSlug = true;
+  static slugField = 'name';
+  static slugTargetField = 'slug';
+
+  static enableOrder = true;
+  static orderField = 'order';
+
+  static forceStatus = true;
+
   static associate(models) {
-    // MODEL_SINGULAR_FORM.hasMany(MODEL_SINGULAR_FORM, {
+    // this.hasMany(MODEL_SINGULAR_FORM, {
     //   as: "childrens",
     //   foreignKey: "parentID",
     //   attributes: ["id", "status"],
     // });
-    // MODEL_SINGULAR_FORM.belongsTo(MODEL_SINGULAR_FORM, {
+    // this.belongsTo(MODEL_SINGULAR_FORM, {
     //   as: "parent",
     //   foreignKey: "parentID",
     //   attributes: ["id", "status"],
     // });
+  }
+
+  // Optional custom logic
+  static async customBeforeCreateHook(instance, options) {
+    // e.g., set defaults or validate something
+  }
+
+  static async customBeforeUpdateHook(instance, options) {
+    // e.g., audit tracking or soft validation
   }
 }
 
 MODEL_SINGULAR_FORM.init(
   {
     id: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
     },
     parentID: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       references: {
         model: 'TABLE_NAME_PLURAL_FORM',
         key: 'id',
@@ -41,7 +61,7 @@ MODEL_SINGULAR_FORM.init(
     name: {
       type: DataTypes.STRING(100),
       allowNull: false,
-      comment: 'This column is for name of the city.',
+      comment: 'This column is for name of the item.',
     },
     status: {
       type: DataTypes.BOOLEAN,
@@ -60,9 +80,9 @@ MODEL_SINGULAR_FORM.init(
       attributes: {
         exclude: ['deletedAt'],
       },
-      where: {
-        status: true,
-      },
+    },
+    hooks: {
+      beforeValidate: async (model, options) => {},
     },
   }
 );

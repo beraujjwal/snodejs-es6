@@ -1,10 +1,8 @@
 'use strict';
-//import autoBind from '../../system/autobind.js';
 import { BaseError } from '../../system/core/error/baseError.js';
 import Controller from './controller.js';
 
 import User from '../services/user.service.js';
-const userService = User.getInstance('User');
 
 class UsersController extends Controller {
   /**
@@ -45,7 +43,6 @@ class UsersController extends Controller {
    * @param {*} req
    */
   async profile({ user }, { transaction }) {
-    //console.log(req.user);
     const phone = user?.phone;
     let result = await userService.getProfile(phone);
     if (result) {
@@ -208,4 +205,6 @@ class UsersController extends Controller {
     throw new BaseError('Some error occurred while deleting user.', 500);
   }
 }
+
+const userService = User.getInstance('User');
 export default new UsersController(userService);

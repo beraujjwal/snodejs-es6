@@ -4,7 +4,6 @@ import { BaseError } from '../../system/core/error/baseError.js';
 import Controller from './controller.js';
 
 import Role from '../services/role.service.js';
-const roleService = Role.getInstance('Role');
 
 class RolesController extends Controller {
   /**
@@ -30,7 +29,7 @@ class RolesController extends Controller {
       return {
         code: 200,
         result,
-        message: 'ROLES_LIST_FETCH_SUCESSFULLY',
+        message: __('ROLES_LIST_FETCH_SUCESSFULLY'),
       };
     }
     throw new BaseError(__('ROLES_LIST_FETCH_ERROR'));
@@ -146,4 +145,5 @@ class RolesController extends Controller {
   }
 }
 
+const roleService = Role.getInstance('Role');
 export default new RolesController(roleService);

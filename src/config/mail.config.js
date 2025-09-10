@@ -27,7 +27,7 @@ export const defaultMail = {
   from: DEFAULT_EMAIL,
   subject: DEFAULT_SUBJECT,
   to: DEFAULT_EMAIL,
-  subject: 'Usha Digital',
+  subject: 'CSI',
   template: 'index',
   attachments: [
     { filename: 'abc.jpg', path: path.resolve(__dirname, './image/abc.jpg') },

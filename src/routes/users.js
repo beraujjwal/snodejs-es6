@@ -16,9 +16,14 @@ const router = express.Router();
 router.group('/v1.0', (versionRouter) => {
   versionRouter.group('/auth', (authRouter) => {
     authRouter.post(
-      '/tenant-sign-up',
-      [UserValidation.tenantSignup],
-      exceptionHandler(AuthController.tenantSignup)
+      '/check-user-exists-by-email',
+      [UserValidation.checkUserExistsByEmail],
+      exceptionHandler(AuthController.checkUserExistsByEmail)
+    );
+    authRouter.post(
+      '/sign-up',
+      [UserValidation.signup],
+      exceptionHandler(AuthController.signup)
     );
     authRouter.post(
       '/tenant-registration-verification/:identifier/:verificationToken',

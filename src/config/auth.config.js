@@ -9,10 +9,10 @@ import {
 export const authConfig = {
   secret:
     JWT_SECRET ||
-    'Laid1DP7PxiA6GofhxVw87jWkRsHEnaEPd0vYRg70lT7pxfDODzK0Wc3LDxYYd6W',
+    'G5rU7!eDzN1L!xgZ4Qm@bTCv8WsJh2kPf9YrAiLdKoEwMtXsV4a531b6ffecauRzNyQ',
   refreshSecret:
     JWT_REFRESH_TOKEN_SECRET ||
-    'd100db699c6f9844824493a2ab83cc2c216955b0546f1185b7c5b1e0630c192c',
+    'Mn4XpT!7qWzLvJ2Ek8RyFgUa@DoKiBsC6f1185b7xNpZtHvGlY5RmAcVs',
   expiresIn: JWT_EXPIRES_IN || '10m',
   refreshExpiresIn: JWT_REFRESH_EXPIRES_IN || '30d',
 };

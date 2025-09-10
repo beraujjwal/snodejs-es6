@@ -1,9 +1,19 @@
 'use strict';
-import slugify from 'slugify';
-import { DataTypes, Model } from 'sequelize';
-import { sequelize } from '../system/core/db.connection.js';
+import { sequelize, DataTypes, Model } from '../system/core/db.connection.js';
+import { BaseModel } from '../system/core/model/base.model.js';
 
-class Resource extends Model {
+class Resource extends BaseModel {
+  // ✅ Per-model configuration
+  static autoRegisterCommonHooks = true;
+  static enableSlug = true;
+  static slugField = 'name';
+  static slugTargetField = 'slug';
+
+  static enableOrder = true;
+  static orderField = 'order';
+
+  static forceStatus = true;
+
   static associate(models) {
     // Self-referencing associations (Parent-Child)
     this.hasMany(this, {
@@ -86,16 +96,16 @@ class Resource extends Model {
 Resource.init(
   {
     id: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
     },
     parentID: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: 'resources',
+        model: 'acl_resources',
         key: 'id',
       },
       onUpdate: 'CASCADE',
@@ -112,15 +122,6 @@ Resource.init(
       type: DataTypes.STRING,
       allowNull: false,
       unique: true,
-      validate: {
-        isLowercase: true,
-        async isUnique(value) {
-          const resource = await Resource.findOne({ where: { slug: value } });
-          if (resource) {
-            throw new Error('Resource name already used.');
-          }
-        },
-      },
     },
     status: {
       type: DataTypes.BOOLEAN,
@@ -132,26 +133,29 @@ Resource.init(
   {
     sequelize,
     modelName: 'Resource',
-    tableName: 'resources',
-    timestamps: true,
-    paranoid: true,
+    tableName: 'acl_resources',
+    timestamps: true, // Automatically adds `createdAt` and `updatedAt`
+    paranoid: true, // Enables `deletedAt` for soft deletes
+    footprint: true, // Enables `lastActivityBy` for last user activity
     defaultScope: {
       attributes: {
         exclude: ['deletedAt'],
       },
-      where: {
-        status: true,
-      },
     },
-    hooks: {
-      beforeValidate: (model) => {
-        if (typeof model.name === 'string') {
-          model.slug = slugify(model.name, { lower: true, strict: true });
-        }
-        if (model.status !== false) {
-          model.status = true;
-        }
+    scopes: {
+      active: { where: { status: true } },
+    },
+    indexes: [
+      {
+        name: 'idx_unique_acl_resources_slug',
+        unique: true,
+        fields: ['slug'],
       },
+      { name: 'idx_acl_resources_name', fields: ['name'] },
+      { name: 'idx_acl_resources_status', fields: ['status'] },
+    ],
+    hooks: {
+      beforeValidate: async (model, options) => {},
     },
   }
 );

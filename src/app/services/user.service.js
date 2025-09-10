@@ -2,6 +2,7 @@
 import bcrypt from 'bcryptjs';
 import moment from 'moment';
 import jwt from 'jsonwebtoken';
+import { Op } from 'sequelize';
 
 import Service from './service.js';
 import { BaseError } from '../../system/core/error/baseError.js';
@@ -17,9 +18,6 @@ import {
   getExpiresInTime,
 } from '../../helpers/utility.js';
 
-const tokenService = Token.getInstance('Token');
-const roleService = Role.getInstance('Role');
-
 class User extends Service {
   /**
    * Service constructor
@@ -29,93 +27,110 @@ class User extends Service {
   constructor(model) {
     super(model);
     this.model = this.getModel(model);
-    this.role = this.getModel('Role');
-    this.permission = this.getModel('Permission');
-    this.resource = this.getModel('Resource');
-    this.userDevice = this.getModel('UserDevice');
-    this.userRole = this.getModel('UserRole');
+    this.name = model;
+    // this.role = this.getModel('Role');
+    // this.permission = this.getModel('Permission');
+    // this.resource = this.getModel('Resource');
+    // this.userDevice = this.getModel('UserDevice');
+    // this.userRole = this.getModel('UserRole');
   }
 
   static getInstance(model) {
-    if (!this.instance) {
-      this.instance = new User(model);
+    if (!this.instances[model]) {
+      this.instances[model] = new User(model);
     }
-    return this.instance;
+    return this.instances[model];
   }
 
-  async createTenantUser(
-    { first_name, last_name, email, ext, phone, password, roles, timezone },
-    { transaction }
-  ) {
+  get role() {
+    if (!this.instances['Role']) {
+      this.instances['Role'] = this.getModel('Role');
+    }
+    return this.instances['Role'];
+    //return this.getModel('Role');
+  }
+
+  get permission() {
+    if (!this.instances['Permission']) {
+      this.instances['Permission'] = this.getModel('Permission');
+    }
+    return this.instances['Permission'];
+    // return this.getModel('Permission');
+  }
+
+  get resource() {
+    if (!this.instances['Resource']) {
+      this.instances['Resource'] = this.getModel('Resource');
+    }
+    return this.instances['Resource'];
+    // return this.getModel('Resource');
+  }
+
+  get userDevice() {
+    if (!this.instances['UserDevice']) {
+      this.instances['UserDevice'] = this.getModel('UserDevice');
+    }
+    return this.instances['UserDevice'];
+    // return this.getModel('UserDevice');
+  }
+
+  get userRole() {
+    if (!this.instances['UserRole']) {
+      this.instances['UserRole'] = this.getModel('UserRole');
+    }
+    return this.instances['UserRole'];
+    // return this.getModel('UserRole');
+  }
+
+  get tokenService() {
+    if (!this._tokenService) {
+      this._tokenService = Token.getInstance('Token');
+    }
+    return this._tokenService;
+  }
+
+  get roleService() {
+    if (!this._roleService) {
+      this._roleService = Role.getInstance('Role');
+    }
+    return this._roleService;
+  }
+
+  async checkUserExistsByEmail({ email, roles }, { transaction }) {
     try {
-      const user = await this.model.create(
-        {
-          first_name,
-          last_name,
-          ext,
-          phone,
-          email,
-          password,
-          status: true,
-          verified: { email: true, phone: true },
-          timezone,
-        },
-        { transaction }
-      );
-
-      const userId = user.id;
-      const userRoles = await roleService.createUserRole(
-        { userId, roles },
-        { transaction }
-      );
-
-      return JSON.parse(JSON.stringify({ user, roles: userRoles }));
-    } catch (ex) {
-      console.error(ex);
-      throw new BaseError(ex);
+      const include = [];
+      if (roles && roles.length > 0) {
+        include.push({
+          model: this.role,
+          as: 'roles',
+          where: { slug: { [Op.in]: roles } },
+        });
+      }
+      const userExists = await this.model.findOne({
+        where: { email },
+        include: include,
+        transaction,
+      });
+      return userExists;
+    } catch (error) {
+      console.error(error);
+      throw new BaseError(error);
     }
   }
 
-  async tenantSignup(
-    {
-      first_name,
-      last_name,
-      email,
-      ext,
-      phone,
-      organization,
-      domain,
-      password,
-    },
-    { transaction }
-  ) {
-    try {
-      const user = await this.model.create(
+  async checkUserExistsByPhone({ phone, roles }, { transaction }) {
+    const userExists = await this.model.findOne({
+      where: { phone },
+      include: [
         {
-          first_name,
-          last_name,
-          ext,
-          phone,
-          email,
-          password,
-          status: false,
-          verified: JSON.stringify({ email: false, phone: false }),
+          model: this.role,
+          as: 'roles',
+          where: { slug: { [Op.in]: roles } },
         },
-        { transaction }
-      );
-
-      const userId = user.id;
-      const userRoles = await roleService.createUserRole(
-        { userId, roles: ['tenant'] },
-        transaction
-      );
-
-      let signupRes = { user, roles: userRoles };
-      return signupRes;
-    } catch (ex) {
-      console.error(ex);
-      throw new BaseError(ex);
-    }
+      ],
+      transaction,
+    });
+    return userExists;
   }
 
   /**
@@ -127,13 +142,25 @@ class User extends Service {
    */
   async signup(
     { first_name, last_name, email, ext, phone, password, roles },
-    transaction
+    { transaction }
   ) {
     try {
       //Registering new user
       if (!roles) throw new BaseError(__('INVALID_ROLES_SELECTED'));
 
       const tokenSalt = generateOTP(6, { digits: true });
+      console.log('this.model', this.model.associations);
+      console.log('data', {
+        first_name,
+        last_name,
+        ext,
+        phone,
+        email,
+        password,
+        isCompleted: false,
+        status: true,
+        verified: { email: false, phone: false },
+      });
       const user = await this.model.create(
         {
           first_name,
@@ -141,30 +168,25 @@ class User extends Service {
           ext,
           phone,
           email,
-          password,
-          isCompleted: true,
+          isCompleted: false,
           status: true,
-          verified: JSON.stringify({}),
-          tokenSalt,
+          verified: { email: false, phone: false },
+          password,
         },
         { transaction }
       );
 
       const userId = user.id;
-      const sentOn = email || phone;
-      await tokenService.createToken(
-        { userId, sentFor: 'ACTIVATION', sentOn },
-        transaction
-      );
-      const userRoles = await roleService.createUserRole(
+
+      const userRoles = await this.roleService.createUserRole(
         { userId, roles },
-        transaction
+        { transaction }
       );
 
       let signupRes = { user, roles: userRoles };
       return signupRes;
     } catch (ex) {
-      console.error(ex);
+      console.error(ex.stack);
       throw new BaseError(ex);
     }
   }
@@ -253,7 +275,6 @@ class User extends Service {
 
       return loginRes; //.toJson();
     } catch (ex) {
-      console.log('ex', ex);
       throw new BaseError(ex.message, ex.code);
     }
   }
@@ -277,7 +298,7 @@ class User extends Service {
         );
         return JSON.parse(JSON.stringify(currentUser));
       }
-      console.log('updateResult', updateResult);
+
       return false;
     } catch (ex) {
       throw new BaseError(
@@ -315,7 +336,7 @@ class User extends Service {
       if (user && user?.verified)
         throw new BaseError('You account already verified.');
 
-      await tokenService.createToken(
+      await this.tokenService.createToken(
         { userId: user.id, sentFor: 'ACTIVATION', sentOn: username },
         transaction
       );
@@ -415,7 +436,6 @@ class User extends Service {
       var token = this.crypto.randomBytes(64).toString('hex'); //creating the token to be sent to the forgot password form (react)
       bcrypt.hash(token, null, null, function (err, hash) {
         //hashing the password to store in the db node.js
-        console.log(this.getEnv('RESET_PASSWORD_TOKEN_EXPIRES_IN'));
         var dt = new Date();
         dt.setSeconds(
           dt.getSeconds() +
@@ -521,7 +541,6 @@ class User extends Service {
         currentDateTime: moment().utc(this.getEnv('APP_TIMEZONE')).toDate(),
       };
     } catch (err) {
-      console.log('err', err);
       throw new BaseError('Invalid or expired refresh token.', 401);
     }
   }
@@ -643,7 +662,6 @@ class User extends Service {
         var userTranslation = await this.UserTranslation.findOne({
           where: { user_id: req.params.id, lang: index },
         });
-        console.log(JSON.parse(JSON.stringify(userTranslation)));
         if (userTranslation.id) {
           await this.UserTranslation.update(
             { name: namesData[index], updated_at: new Date() },
@@ -776,9 +794,6 @@ class User extends Service {
             },
             required: true,
             through: {
-              where: {
-                status: true,
-              },
               attributes: [],
             },
             where: {
@@ -787,9 +802,8 @@ class User extends Service {
           },
         ],
         transaction,
-        lock: true,
-        skipLocked: true,
-        //logging: (sql) => console.log('SQL:', sql),
+        //lock: true,
+        //skipLocked: true,
       });
 
       if (!user)
@@ -833,7 +847,6 @@ class User extends Service {
               transaction,
               lock: true,
               skipLocked: true,
-              //logging: (sql) => console.log('SQL:', sql),
             });
             role.resources = resources;
             return role;
@@ -866,7 +879,6 @@ class User extends Service {
           transaction,
           lock: true,
           skipLocked: true,
-          //logging: (sql) => console.log('SQL:', sql),
         });
 
         user.roles = rolesWithDetails;

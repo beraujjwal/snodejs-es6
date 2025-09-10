@@ -12,8 +12,33 @@ class Resource extends Service {
   constructor(model) {
     super(model);
     this.model = this.getModel(model);
-    this.permission = this.getModel('Permission');
-    this.resourcePermission = this.getModel('ResourcePermission');
+    this.name = model;
+    // this.permission = this.getModel('Permission');
+    // this.resourcePermission = this.getModel('ResourcePermission');
+  }
+
+  get permission() {
+    if (!this.instances['Permission']) {
+      this.instances['Permission'] = this.getModel('Permission');
+    }
+    return this.instances['Permission'];
+    //return this.getModel('Permission');
+  }
+
+  get resourcePermission() {
+    if (!this.instances['ResourcePermission']) {
+      this.instances['ResourcePermission'] =
+        this.getModel('ResourcePermission');
+    }
+    return this.instances['ResourcePermission'];
+    //return this.getModel('ResourcePermission');
+  }
+
+  static getInstance(model) {
+    if (!this.instances[model]) {
+      this.instances[model] = new Resource(model);
+    }
+    return this.instances[model];
   }
 
   /**
@@ -96,7 +121,6 @@ class Resource extends Service {
         throw new BaseError('You have selected an invalid resource.');
       return resource;
     } catch (ex) {
-      console.log('ResourceService findOnePermission', ex);
       throw new BaseError(
         ex.message || 'An error occurred while fetching a resource details.',
         ex.status

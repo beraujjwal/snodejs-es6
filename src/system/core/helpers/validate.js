@@ -35,7 +35,6 @@ Validator.registerAsync('unique', async (value, attribute, req, passes) => {
   if (pk != null && pkvalue != null) {
     criteria = { ...criteria, [pk]: { [Op.ne]: pkvalue } };
   }
-  console.log(criteria);
   let user = await db[table].findOne({ where: criteria, logging: console.log });
 
   if (user) {
@@ -71,13 +70,16 @@ Validator.registerAsync('exists', async (value, attribute, param, passes) => {
   let msg = `The ${param} whose value (${value}) was not found.`;
   //check if incoming value already exists in the database
   let criteria = { status: true, [column]: value };
-  const datas = await db[table].findAll({ where: criteria, attributes: ['id'] });
+  const datas = await db[table].findAll({
+    where: criteria,
+    attributes: ['id'],
+  });
 
   if (!datas) {
     passes(false, msg); // return false if value exists
     return;
-  } else if(Array.isArray(value)) {
-    if(datas.length != value.length) {
+  } else if (Array.isArray(value)) {
+    if (datas.length != value.length) {
       msg = `The ${param} whose value (${value.toString()}) was not founds.`;
       passes(false, msg); // return false if value exists
       return;
@@ -143,7 +145,9 @@ Validator.register(
   'domain',
   (value) => {
     // requirement parameter defaults to null
-    return value.match(/^(((http|https):\/\/|)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,6}(:[0-9]{1,5})?(\/.*)?)$/);
+    return value.match(
+      /^(((http|https):\/\/|)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,6}(:[0-9]{1,5})?(\/.*)?)$/
+    );
   },
   'The :attribute is not a valid domain.'
 );

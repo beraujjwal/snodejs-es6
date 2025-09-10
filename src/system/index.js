@@ -18,20 +18,17 @@ import limiter from '../config/rateLimit.config.js';
 import router from './route/index.js';
 
 import deepTrim from './core/middleware/deepTrimming.js';
-// import { consumerKafkaMessage } from '../libraries/consumer.library.js';
-// import { sendKafkaNotification } from '../libraries/producer.library.js';
 const __dirname = new URL('.', import.meta.url).pathname;
 
-import { APP_TIMEZONE } from '../config/config.js';
+import { APP_PORT, APP_ENV, APP_URL, APP_TIMEZONE } from '../config/config.js';
 
 //import './sentry-init.js';
 
 const app = express();
 app.use(useragent.express());
 
-console.log('🔧  Bootstrapping Application');
+console.log(`🛠️   Bootstrapping Application`);
 
-let apiHitCount = 0;
 let errorCount = 0;
 
 const hbs = engine({
@@ -41,12 +38,12 @@ const hbs = engine({
   extname: '.hbs',
   helpers: {
     getCurrentDate: () => moment().tz(APP_TIMEZONE).toDate(),
-    getFullName(firstName, lastName) {
-      return `${firstName} ${lastName}`;
-    },
-    getDate: (date) => {
-      return moment(date).tz(APP_TIMEZONE).toDate();
-    },
+    getFullName: (firstName, lastName) => `${firstName} ${lastName}`,
+    getDate: (date) => moment(date).tz(APP_TIMEZONE).toDate(),
+    encodeURI: (url) => encodeURI(url),
+    decodeURI: (url) => decodeURI(url),
+    emailHTML: (email) => `<a href="mail:${email}">${email}</a>`,
+    phoneHTML: (ext, phone) => `<a href="phone:${phone}">${ext} ${phone}</a>`,
   },
 });
 
@@ -79,38 +76,37 @@ app.use(limiter);
 //Helmet helps you secure your Express apps by setting various HTTP headers.
 app.use(helmet());
 
-const PORT = +process.env.APP_PORT || 3000;
-const MODE = process.env.APP_ENV || 'development';
-
-console.log(`👉  Mode: ${MODE}`);
-console.log(`👉  Port: ${PORT}`);
+console.log(`👉  Mode: ${APP_ENV}`);
+console.log(`👉  Port: ${APP_PORT}`);
 
 //don't show the log when it is test
-if (MODE === 'development') {
-  app.use(logger('dev', { stream: new LoggerStream() }));
+if (APP_ENV === 'development') {
+  app.use(logger('combined', { stream: new LoggerStream() }));
 }
 
-console.log('👉  Mapping Routes');
+console.log('🧭  Mapping Routes');
 
 app.get('/', async (req, res) => {
   return res.status(200).send({
-    message: `Welcome to the snodejs API! \n Endpoints available at http://localhost:${PORT}`,
+    error: false,
+    code: 200,
+    message: `Your claim application is running! \n Endpoints available at ${APP_URL}`,
+    indicate: 'OK',
   });
 });
 
 app.get('/health', async (req, res) => {
+  console.log('Health checked on ', new Date());
   return res.status(200).send({
-    message: `Welcome to the admin service.`,
+    error: false,
+    code: 200,
+    message: 'Your claim application is running!',
+    indicate: 'OK',
   });
 });
 
 //Route Prefixes
 app.use('/', router);
-
-// Kafka Consumer
-// consumerKafkaMessage();
-
-//sendKafkaNotification('dummy-topic', { message: `Here i am at ${new Date().toISOString()}.` });
 
 //Sentry.setupExpressErrorHandler(app);
 app.use(function (err, req, res, next) {
@@ -124,7 +120,7 @@ app.use(function (err, req, res, next) {
     showErrorNumber = `No.- ${errorCount}`;
   }
 
-  if (MODE !== 'test')
+  if (APP_ENV !== 'test')
     winston.error(
       `${showErrorNumber} - ${code || 500} - ${errorMessage} - ${req.originalUrl} - ${req.method} - ${req.ip}`
     );

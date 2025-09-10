@@ -11,6 +11,15 @@ class Service extends BaseService {
   constructor(model) {
     super(model);
     this.model = this.getModel(model);
+    this.name = model;
+    this.instances = {};
+  }
+
+  static getInstance(model) {
+    if (!this.instances[model]) {
+      this.instances[model] = new Service(model);
+    }
+    return this.instances[model];
   }
 
   async removeDuplicates(arr) {
@@ -31,9 +40,10 @@ class Service extends BaseService {
       );
 
       // Find children of the current node
-      const childrens = await this.model.findAll(
-        { where: { parent: rootId }, transaction }
-      );
+      const childrens = await this.model.findAll({
+        where: { parent: rootId },
+        transaction,
+      });
 
       // Recursively update status for each child
       for (const children of childrens) {

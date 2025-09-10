@@ -6,8 +6,10 @@ class BaseError extends Error {
    * @param {string|object} error - Error message or object
    * @param {number} code - HTTP status code (default: 500)
    */
-  constructor(error, code = 500) {
+  constructor(error, code = null, isOperational = true) {
     super(typeof error === 'string' ? error : 'Something went wrong!');
+
+    if (!code) code = error?.code || 500;
 
     Error.captureStackTrace(this, this.constructor);
 

@@ -1,7 +1,9 @@
 'use strict';
 import { sequelize, DataTypes, Model } from '../system/core/db.connection.js';
+import { BaseModel } from '../system/core/model/base.model.js';
 
-class UserResourcePermission extends Model {
+class UserResourcePermission extends BaseModel {
+  static autoRegisterCommonHooks = false;
   static associate(models) {
     this.belongsTo(models.User, {
       foreignKey: 'userID',
@@ -23,36 +25,36 @@ class UserResourcePermission extends Model {
 UserResourcePermission.init(
   {
     id: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
     },
     userID: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'users',
+        model: 'gnrl_users',
         key: 'id',
       },
       onUpdate: 'CASCADE',
       onDelete: 'RESTRICT',
     },
     resourceID: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'resources',
+        model: 'acl_resources',
         key: 'id',
       },
       onUpdate: 'CASCADE',
       onDelete: 'RESTRICT',
     },
     permissionID: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'permissions',
+        model: 'acl_permissions',
         key: 'id',
       },
       onUpdate: 'CASCADE',
@@ -69,7 +71,7 @@ UserResourcePermission.init(
   {
     sequelize,
     modelName: 'UserResourcePermission',
-    tableName: 'user_resource_permissions',
+    tableName: 'acl_user_resource_permissions',
     timestamps: true,
     paranoid: true,
     defaultScope: {

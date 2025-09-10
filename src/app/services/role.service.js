@@ -6,8 +6,6 @@ import Service from './service.js';
 import { validationError } from '../../system/core/error/validationError.js';
 import Resource from './resource.service.js';
 
-const resourceService = Resource.getInstance('Resource');
-
 class Role extends Service {
   /**
    * role service constructor
@@ -17,16 +15,45 @@ class Role extends Service {
   constructor(model) {
     super(model);
     this.model = this.getModel(model);
-    this.resource = this.getModel('Resource');
-    this.userRole = this.getModel('UserRole');
-    this.permission = this.getModel('Permission');
+    this.name = model;
+    // this.resource = this.getModel('Resource');
+    // this.userRole = this.getModel('UserRole');
+    // this.permission = this.getModel('Permission');
   }
 
   static getInstance(model) {
-    if (!this.instance) {
-      this.instance = new Role(model);
+    if (!this.instances[model]) {
+      this.instances[model] = new Role(model);
     }
-    return this.instance;
+    return this.instances[model];
+  }
+
+  get resource() {
+    if (!this.instances['Resource']) {
+      this.instances['Resource'] = this.getModel('Resource');
+    }
+    return this.instances['Resource'];
+  }
+
+  get userRole() {
+    if (!this.instances['UserRole']) {
+      this.instances['UserRole'] = this.getModel('UserRole');
+    }
+    return this.instances['UserRole'];
+  }
+
+  get permission() {
+    if (!this.instances['Permission']) {
+      this.instances['Permission'] = this.getModel('Permission');
+    }
+    return this.instances['Permission'];
+  }
+
+  get resourceService() {
+    if (!this._resourceService) {
+      this._resourceService = Resource.getInstance('Resource');
+    }
+    return this._resourceService;
   }
 
   async findAllRoles({ query }, { transaction }) {
@@ -67,7 +94,6 @@ class Role extends Service {
 
       return response;
     } catch (ex) {
-      console.log(ex);
       throw new BaseError(ex);
     }
   }
@@ -77,7 +103,6 @@ class Role extends Service {
     { transaction }
   ) {
     try {
-      console.log({ parent, name, description, resources, status });
       const role = await this.createOne(
         {
           name,
@@ -92,9 +117,12 @@ class Role extends Service {
 
       // Step 2: Prepare Resources and Permissions
       for (const resource of resources) {
-        const resourceInstance = await resourceService.findByPk(resource.id, {
-          transaction,
-        });
+        const resourceInstance = await this.resourceService.findByPk(
+          resource.id,
+          {
+            transaction,
+          }
+        );
 
         if (!resourceInstance) {
           throw new Error(`Resource with ID ${resource.id} not found`);
@@ -111,7 +139,6 @@ class Role extends Service {
 
       return role;
     } catch (ex) {
-      console.log(ex);
       throw new BaseError(
         ex.message || `Error fetching ${this.name} details.`,
         ex.statusCode || ex.code || 400
@@ -154,7 +181,6 @@ class Role extends Service {
       if (!role) throw new BaseError('You have selected an invalid role.');
       return role;
     } catch (ex) {
-      console.log('RoleService findOneRole', ex);
       throw new BaseError(
         ex.message || 'An error occurred while fetching a role details.',
         ex.status
@@ -181,9 +207,12 @@ class Role extends Service {
       const roleUpdate = await this.updateByPk(roleId, data, { transaction });
 
       for (const resource of resources) {
-        const resourceInstance = await resourceService.findByPk(resource.id, {
-          transaction,
-        });
+        const resourceInstance = await this.resourceService.findByPk(
+          resource.id,
+          {
+            transaction,
+          }
+        );
 
         if (!resourceInstance) {
           throw new Error(`Resource with ID ${resource.id} not found`);
@@ -292,7 +321,6 @@ class Role extends Service {
         slug: { $in: roles },
       });
 
-      console.log('dbRoles', dbRoles);
       if (dbRoles.length !== roles.length) {
         throw new validationError(
           { roles: ['You have selected an invalid role.'] },
@@ -329,7 +357,6 @@ class Role extends Service {
       // Bulk insert user roles inside the transaction
       await this.userRole.bulkCreate(userRoles, { transaction });
     } catch (ex) {
-      console.log('ex', ex);
       throw new BaseError(ex.message);
     }
   }
@@ -368,7 +395,6 @@ class Role extends Service {
         transaction,
       });
     } catch (ex) {
-      console.log(ex);
       throw new BaseError(ex);
     }
   }

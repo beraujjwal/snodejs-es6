@@ -1,17 +1,18 @@
 'use strict';
 
 async function up({ context: queryInterface }) {
+  const dbName = queryInterface.sequelize.getDialect();
   await queryInterface
     .bulkInsert(
-      'tokens',
+      'gnrl_tokens',
       [
         {
           id: 1,
           userID: 1,
           token: '543210',
-          sentTo: 'PHONE',
+          sentTo: 'sms',
           sentOn: '9876543210',
-          sentFor: 'ACTIVATION',
+          sentFor: 'activation',
           status: true,
           expireAt: new Date(),
           createdAt: new Date(),
@@ -20,9 +21,9 @@ async function up({ context: queryInterface }) {
           id: 2,
           userID: 2,
           token: '543211',
-          sentTo: 'PHONE',
+          sentTo: 'sms',
           sentOn: '9876543211',
-          sentFor: 'ACTIVATION',
+          sentFor: 'activation',
           status: true,
           expireAt: new Date(),
           createdAt: new Date(),
@@ -31,9 +32,9 @@ async function up({ context: queryInterface }) {
           id: 3,
           userID: 3,
           token: '543212',
-          sentTo: 'PHONE',
+          sentTo: 'sms',
           sentOn: '9876543212',
-          sentFor: 'ACTIVATION',
+          sentFor: 'activation',
           status: true,
           expireAt: new Date(),
           createdAt: new Date(),
@@ -46,13 +47,15 @@ async function up({ context: queryInterface }) {
       throw ex;
     });
 
-  await queryInterface.sequelize.query(
-    "SELECT setval('tokens_id_seq', (SELECT MAX(id) FROM tokens))"
-  );
+  if (dbName === 'postgres') {
+    await queryInterface.sequelize.query(
+      "SELECT setval('gnrl_tokens_id_seq', (SELECT MAX(id) FROM gnrl_tokens))"
+    );
+  }
 }
 
 async function down({ context: queryInterface }) {
-  await queryInterface.bulkDelete('tokens', null, {}).catch((ex) => {
+  await queryInterface.bulkDelete('gnrl_tokens', null, {}).catch((ex) => {
     console.error(ex);
     throw ex;
   });

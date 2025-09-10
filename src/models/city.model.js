@@ -1,8 +1,9 @@
 'use strict';
-import { DataTypes, Model } from 'sequelize';
-import { sequelize } from '../system/core/db.connection.js';
+import { sequelize, DataTypes, Model } from '../system/core/db.connection.js';
+import { BaseModel } from '../system/core/model/base.model.js';
 
-class City extends Model {
+class City extends BaseModel {
+  static autoRegisterCommonHooks = false;
   static associate(models) {
     this.belongsTo(models.State, {
       foreignKey: 'stateID',
@@ -14,7 +15,7 @@ class City extends Model {
 City.init(
   {
     id: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
@@ -25,10 +26,13 @@ City.init(
       comment: 'This column is for name of the city.',
     },
     stateID: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'states',
+        model: {
+          tableName: 'gnrl_states',
+          modelName: 'State',
+        },
         key: 'id',
       },
       onUpdate: 'CASCADE',
@@ -36,10 +40,13 @@ City.init(
       comment: 'This column is for making relation between city and state.',
     },
     countryID: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'countries',
+        model: {
+          tableName: 'gnrl_countries',
+          modelName: 'Country',
+        },
         key: 'id',
       },
       onUpdate: 'CASCADE',
@@ -64,23 +71,24 @@ City.init(
   {
     sequelize,
     modelName: 'City',
-    tableName: 'cities',
-    timestamps: true,
-    paranoid: true,
+    tableName: 'gnrl_cities',
+    timestamps: true, // Automatically adds `createdAt` and `updatedAt`
+    paranoid: true, // Enables `deletedAt` for soft deletes
+    footprint: true, // Enables `lastActivityBy` for last user activity
     defaultScope: {
       attributes: {
         exclude: ['deletedAt'],
       },
-      where: {
-        status: true,
-      },
     },
     scopes: {
-      activeCities: {
-        where: {
-          status: true,
-        },
-      },
+      active: { where: { status: true } },
+    },
+    indexes: [
+      { name: 'idx_gnrl_cities_name', fields: ['name'] },
+      { name: 'idx_gnrl_cities_status', fields: ['status'] },
+    ],
+    hooks: {
+      beforeValidate: async (model, options) => {},
     },
   }
 );

@@ -4,7 +4,6 @@ import { BaseError } from '../../system/core/error/baseError.js';
 import Controller from './controller.js';
 
 import Resource from '../services/resource.service.js';
-const resourceService = new Resource('Resource');
 
 class resourcesController extends Controller {
   /**
@@ -93,7 +92,6 @@ class resourcesController extends Controller {
    */
   async resourceDetails({ params }, { transaction }) {
     let resourceId = params.id;
-    console.log(`resourceId => ${resourceId}`);
     let result = await this.service.findOnePermission(resourceId, {
       transaction,
     });
@@ -209,4 +207,5 @@ class resourcesController extends Controller {
   }
 }
 
+const resourceService = new Resource('Resource');
 export default new resourcesController(resourceService);

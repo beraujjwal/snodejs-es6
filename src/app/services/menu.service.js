@@ -12,8 +12,32 @@ class Menu extends Service {
   constructor(model) {
     super(model);
     this.model = this.getModel(model);
-    this.permission = this.getModel('Permission');
-    this.menuPermission = this.getModel('MenuPermission');
+    this.name = model;
+    // this.permission = this.getModel('Permission');
+    // this.menuPermission = this.getModel('MenuPermission');
+  }
+
+  static getInstance(model) {
+    if (!this.instances[model]) {
+      this.instances[model] = new Menu(model);
+    }
+    return this.instances[model];
+  }
+
+  get menuPermission() {
+    if (!this.instances['MenuPermission']) {
+      this.instances['MenuPermission'] = this.getModel('MenuPermission');
+    }
+    return this.instances['MenuPermission'];
+    //return this.getModel('MenuPermission');
+  }
+
+  get permission() {
+    if (!this.instances['Permission']) {
+      this.instances['Permission'] = this.getModel('Permission');
+    }
+    return this.instances['Permission'];
+    // return this.getModel('Permission');
   }
 
   /**
@@ -34,7 +58,7 @@ class Menu extends Service {
         query.order_by = 'parentID';
         query.order_by_can_be_null = true;
       }
-      if(query.parent != null && query.parent.length > 0) {
+      if (query.parent != null && query.parent.length > 0) {
         filter = { ...filter, parentID: Number(query.parent) };
         query.parentID = Number(query.parent);
         delete query.parent;
@@ -64,11 +88,11 @@ class Menu extends Service {
   ) {
     try {
       const menu = await this.createOne(
-          {
-            name,
-            parentID,
-            status,
-          },
+        {
+          name,
+          parentID,
+          status,
+        },
         { transaction }
       );
 
@@ -92,11 +116,9 @@ class Menu extends Service {
   async findOnePermission(menuId, { transaction }) {
     try {
       let menu = await this.findByPk(menuId, { transaction });
-      if (!menu)
-        throw new BaseError('You have selected an invalid menu.');
+      if (!menu) throw new BaseError('You have selected an invalid menu.');
       return menu;
     } catch (ex) {
-      console.log('MenuService findOnePermission', ex);
       throw new BaseError(
         ex.message || 'An error occurred while fetching a menu details.',
         ex.status
@@ -112,11 +134,14 @@ class Menu extends Service {
    * @returns object
    * @author Ujjwal Bera
    */
-  async menuUpdate(menuId, { name, parentID, status = true, permissions }, { transaction }) {
+  async menuUpdate(
+    menuId,
+    { name, parentID, status = true, permissions },
+    { transaction }
+  ) {
     try {
       let menu = await this.findByPk(menuId, { transaction });
-      if (!menu)
-        throw new BaseError('You have selected an invalid menu.');
+      if (!menu) throw new BaseError('You have selected an invalid menu.');
 
       let data = {};
 
@@ -126,7 +151,10 @@ class Menu extends Service {
 
       await this.updateByPk(menuId, data, { transaction });
 
-      await this.menuPermission.destroy({ where: { menuID: menuId }, truncate: true });
+      await this.menuPermission.destroy({
+        where: { menuID: menuId },
+        truncate: true,
+      });
 
       await menu.setMenuPermissions(permissions, { transaction });
 
@@ -152,8 +180,7 @@ class Menu extends Service {
         _id: menuId,
         deleted: false,
       });
-      if (!menu)
-        throw new BaseError('You have selected an invalid menu.');
+      if (!menu) throw new BaseError('You have selected an invalid menu.');
 
       if (status) {
         const parentMenu = await this.model.findOne({
@@ -171,10 +198,7 @@ class Menu extends Service {
           throw new BaseError('Please in-active child menu before this.');
       }
 
-      await this.model.updateOne(
-        { _id: menuId },
-        { $set: { status: status } }
-      );
+      await this.model.updateOne({ _id: menuId }, { $set: { status: status } });
 
       //await this.updateNestedStatus(menuId, status);
 
@@ -199,16 +223,14 @@ class Menu extends Service {
         _id: menuId,
         deleted: false,
       });
-      if (!menu)
-        throw new BaseError('You have selected an invalid menu.');
+      if (!menu) throw new BaseError('You have selected an invalid menu.');
 
       const childMenu = await this.model.findOne({
         parent: menuId,
         deleted: false,
       });
 
-      if (childMenu)
-        throw new BaseError('You have child menu inside it.');
+      if (childMenu) throw new BaseError('You have child menu inside it.');
 
       return true;
     } catch (ex) {
@@ -231,8 +253,7 @@ class Menu extends Service {
         _id: menuId,
         deleted: false,
       });
-      if (!menu)
-        throw new BaseError('You have selected an invalid menu.');
+      if (!menu) throw new BaseError('You have selected an invalid menu.');
 
       await menu.delete();
 

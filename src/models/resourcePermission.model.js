@@ -1,8 +1,9 @@
 'use strict';
-import { DataTypes, Model } from 'sequelize';
-import { sequelize } from '../system/core/db.connection.js';
+import { sequelize, DataTypes, Model } from '../system/core/db.connection.js';
+import { BaseModel } from '../system/core/model/base.model.js';
 
-class ResourcePermission extends Model {
+class ResourcePermission extends BaseModel {
+  static autoRegisterCommonHooks = false;
   static associate(models) {
     this.belongsTo(models.Resource, {
       foreignKey: 'resourceID',
@@ -23,26 +24,26 @@ class ResourcePermission extends Model {
 ResourcePermission.init(
   {
     id: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
     },
     resourceID: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       allowNull: true, // To avoid foreign key constraint errors
       references: {
-        model: 'resources',
+        model: 'acl_resources',
         key: 'id',
       },
       onUpdate: 'CASCADE',
       onDelete: 'RESTRICT',
     },
     permissionID: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: 'permissions',
+        model: 'acl_permissions',
         key: 'id',
       },
       onUpdate: 'CASCADE',
@@ -59,10 +60,9 @@ ResourcePermission.init(
   {
     sequelize,
     modelName: 'ResourcePermission',
-    tableName: 'resource_permissions',
-    timestamps: true,
-    paranoid: true,
-    indexes: [{ unique: true, fields: ['resourceID', 'permissionID'] }],
+    tableName: 'acl_resource_permissions',
+    timestamps: true, // Automatically adds `createdAt` and `updatedAt`
+    paranoid: true, // Enables `deletedAt` for soft deletes
     defaultScope: {
       attributes: {
         exclude: ['deletedAt'],
@@ -70,6 +70,16 @@ ResourcePermission.init(
       where: {
         status: true,
       },
+    },
+    indexes: [
+      {
+        name: 'idx_unique_acl_resource_permissions_fks',
+        unique: true,
+        fields: ['resourceID', 'permissionID', 'status'],
+      },
+    ],
+    hooks: {
+      beforeValidate: async (model, options) => {},
     },
   }
 );

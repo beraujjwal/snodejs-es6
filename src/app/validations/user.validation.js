@@ -13,13 +13,21 @@ class UserValidation extends Validation {
     this.regexEmail = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
   }
 
-  async tenantSignup(req, res, next) {
+  async checkUserExistsByEmail(req, res, next) {
     const validationRule = {
-      name: 'required|string',
       email: 'required|email',
+      role: 'string',
+    };
+    return await this.validate(req, res, next, validationRule);
+  }
+
+  async signup(req, res, next) {
+    const validationRule = {
+      first_name: 'required|string',
+      last_name: 'required|string',
+      email: 'required|email',
+      ext: 'required|string',
       phone: 'required|numeric',
-      organization: 'required|string',
-      domain: 'required|string',
       password: 'required|string|strict|min:6',
     };
     return await this.validate(req, res, next, validationRule);
@@ -68,7 +76,6 @@ class UserValidation extends Validation {
     };
     return await this.validate(req, res, next, validationRule);
   }
-
 
   async generateToken(req, res, next) {
     const validationRule = {

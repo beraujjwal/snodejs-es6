@@ -11,7 +11,14 @@ class Permission extends Service {
   constructor(model) {
     super(model);
     this.model = this.getModel(model);
-    this.name = 'Permission';
+    this.name = model;
+  }
+
+  static getInstance(model) {
+    if (!this.instances[model]) {
+      this.instances[model] = new Permission(model);
+    }
+    return this.instances[model];
   }
 
   async findAllPermissions({ query }, { transaction }) {
@@ -24,7 +31,6 @@ class Permission extends Service {
 
       return await this.findAll(query, { transaction });
     } catch (ex) {
-      console.log('ex', ex);
       throw new BaseError(ex);
     }
   }
@@ -36,7 +42,7 @@ class Permission extends Service {
           name,
           status,
         },
-        { transaction } 
+        { transaction }
       );
 
       //await permissionGraph.create(permission[0]);
@@ -48,7 +54,10 @@ class Permission extends Service {
 
   async findOnePermission(permissionId, { transaction }) {
     try {
-      let permission = await this.findOne({ id: permissionId }, { transaction });
+      let permission = await this.findOne(
+        { id: permissionId },
+        { transaction }
+      );
       if (!permission) {
         throw new BaseError('Permission not found with this given details.');
       }
@@ -58,7 +67,7 @@ class Permission extends Service {
     }
   }
 
-  async permissionUpdate(permissionId,  { name, status }, { transaction }) {
+  async permissionUpdate(permissionId, { name, status }, { transaction }) {
     try {
       return await this.updateByPk(
         permissionId,
@@ -73,13 +82,13 @@ class Permission extends Service {
     }
   }
 
-  async permissionStatsUpdate(permissionId,  { transaction }) {
+  async permissionStatsUpdate(permissionId, { transaction }) {
     try {
       const permission = await this.findByPk(permissionId, { transaction });
       const permissionData = {
         name: permission.name,
         status: !permission.status,
-      }
+      };
       return await this.updateByPk(
         permissionId,
         {
@@ -96,7 +105,6 @@ class Permission extends Service {
     try {
       return await this.destroyByPk(permissionId, { transaction });
     } catch (ex) {
-      console.log('ex', ex);
       throw new BaseError(ex);
     }
   }

@@ -25,14 +25,15 @@ class Token extends Service {
   constructor(model) {
     super(model);
     this.model = this.getModel(model);
+    this.name = model;
     this.regexEmail = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
   }
 
   static getInstance(model) {
-    if (!this.instance) {
-      this.instance = new Token(model);
+    if (!this.instances[model]) {
+      this.instances[model] = new Token(model);
     }
-    return this.instance;
+    return this.instances[model];
   }
 
   async verificationToken(email, token, { transaction }) {
@@ -62,7 +63,6 @@ class Token extends Service {
       await tokenData.update(updatedData, { transaction });
       return JSON.parse(JSON.stringify(tokenData));
     } catch (ex) {
-      console.log(ex);
       throw new BaseError(ex);
     }
   }
@@ -154,7 +154,6 @@ class Token extends Service {
 
       return userToken;
     } catch (ex) {
-      console.log('ex', ex);
       throw new BaseError(ex);
     }
   }
@@ -232,8 +231,6 @@ class Token extends Service {
         this.getEnv('JWT_REFRESH_TOKEN_SECRET')
       );
 
-      console.log('decoded', decoded);
-
       // You can optionally revalidate user from DB here using decoded.userId/email
 
       // Generate a new access token
@@ -245,7 +242,6 @@ class Token extends Service {
 
       return accessToken;
     } catch (err) {
-      console.log('err', err);
       throw new BaseError('Invalid or expired refresh token.', 401);
     }
   }

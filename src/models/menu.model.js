@@ -1,8 +1,19 @@
 'use strict';
-import { DataTypes, Model } from 'sequelize';
-import { sequelize } from '../system/core/db.connection.js';
+import { sequelize, DataTypes, Model } from '../system/core/db.connection.js';
+import { BaseModel } from '../system/core/model/base.model.js';
 
-class Menu extends Model {
+class Menu extends BaseModel {
+  // ✅ Per-model configuration
+  static autoRegisterCommonHooks = true;
+  static enableSlug = true;
+  static slugField = 'name';
+  static slugTargetField = 'slug';
+
+  static enableOrder = true;
+  static orderField = 'order';
+
+  static forceStatus = true;
+
   static associate(models) {
     this.hasMany(this, {
       as: 'childrens',
@@ -28,15 +39,15 @@ class Menu extends Model {
 Menu.init(
   {
     id: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
     },
     parentID: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       references: {
-        model: 'menus',
+        model: 'acl_menus',
         key: 'id',
       },
       onUpdate: 'CASCADE',
@@ -60,14 +71,6 @@ Menu.init(
       unique: true,
       validate: {
         isLowercase: true,
-        async isUnique(value) {
-          const menu = await Menu.findOne({
-            where: { slug: value, parentID: this.parentID },
-          });
-          if (menu) {
-            throw new Error('Menu name already used.');
-          }
-        },
       },
     },
     description: {
@@ -84,27 +87,29 @@ Menu.init(
   {
     sequelize,
     modelName: 'Menu',
-    tableName: 'menus',
-    timestamps: true,
-    paranoid: true,
-    indexes: [{ unique: true, fields: ['name', 'slug'] }],
+    tableName: 'acl_menus',
+    timestamps: true, // Automatically adds `createdAt` and `updatedAt`
+    paranoid: true, // Enables `deletedAt` for soft deletes
+    footprint: true, // Enables `lastActivityBy` for last user activity
     defaultScope: {
       attributes: {
         exclude: ['deletedAt'],
       },
     },
     scopes: {
-      withPermissions: {
-        attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] },
-      },
+      active: { where: { status: true } },
     },
+    indexes: [
+      {
+        name: 'idx_unique_acl_menus_slug',
+        unique: true,
+        fields: ['slug'],
+      },
+      { name: 'idx_acl_menus_name', fields: ['name'] },
+      { name: 'idx_acl_menus_status', fields: ['status'] },
+    ],
     hooks: {
-      beforeCreate: async (menu) => {
-        // Add custom logic if needed
-      },
-      beforeUpdate: async (menu) => {
-        // Add custom logic if needed
-      },
+      beforeValidate: async (model, options) => {},
     },
   }
 );

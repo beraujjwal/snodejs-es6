@@ -1,43 +1,34 @@
 'use strict';
-import { Sequelize, DataTypes, Model } from 'sequelize';
+import { Sequelize, DataTypes, Model, Op } from 'sequelize';
+import { sequelize } from '../database/db.js';
 import config from '../../config/db.config.js';
 
-console.log('config', config);
-
-let sequelize = null;
+/**
+ * Establishes a connection to the database.
+ *
+ * @returns {Promise<Sequelize>} - Resolves with the Sequelize instance once the connection is established.
+ * @throws {Error} - If the connection to the database fails.
+ */
 const connectToDatabase = async () => {
   try {
-    sequelize = new Sequelize(config.name, config.username, config.password, {
-      host: config.host,
-      port: config.port,
-      dialect: config.dialect,
-      logging: config.logging ? (sql) => console.log('📝  SQL', sql) : false,
-      pool: {
-        max: 20, // Increased max connections
-        min: 5,
-        acquire: 60000,
-        idle: 10000,
-        evictionRunIntervalMillis: 5000,
-      },
-    });
     await sequelize.authenticate();
 
     console.log('🗄️   Database connection has been established successfully.');
+
     if (config.sync) {
       try {
         await sequelize.sync({ alter: true });
-        console.log('DB & Model synced successfully!');
+        console.log('🗄️   DB & Model synced successfully!');
       } catch (ex) {
-        console.error(`Table creation failed: ${ex.message}`);
+        console.error(`⚠️   Table creation failed: ${ex.message}`);
       }
     }
     return sequelize;
   } catch (ex) {
-    console.error(ex);
     console.error(`⚠️   Database connection failed: ${ex.message}`);
   }
 };
 
 connectToDatabase();
 
-export { sequelize, DataTypes, Model, connectToDatabase };
+export { sequelize, DataTypes, Model, Op, connectToDatabase };

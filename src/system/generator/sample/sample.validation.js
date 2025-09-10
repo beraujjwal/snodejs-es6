@@ -1,7 +1,8 @@
 'use strict';
-const { validation } = require('./validation');
+//import autoBind from '../../system/autobind';
+import { Validation } from './validation.js';
 
-class VALIDATION_CAMEL_CASE_SINGULAR_FROMValidation extends validation {
+class VALIDATION_CAMEL_CASE_SINGULAR_FROMValidation extends Validation {
   /**
    * Validation constructor
    * @author Ujjwal Bera
@@ -10,6 +11,13 @@ class VALIDATION_CAMEL_CASE_SINGULAR_FROMValidation extends validation {
   constructor() {
     super();
   }
+
+  // static getInstance() {
+  //   if (!this.instances) {
+  //     this.instances = new VALIDATION_CAMEL_CASE_SINGULAR_FROMValidation();
+  //   }
+  //   return this.instances;
+  // }
 
   async create(req, res, next) {
     const validationRule = {
@@ -26,4 +34,5 @@ class VALIDATION_CAMEL_CASE_SINGULAR_FROMValidation extends validation {
     return await this.validate(req, res, next, validationRule);
   }
 }
-module.exports = new VALIDATION_CAMEL_CASE_SINGULAR_FROMValidation();
+
+export default new VALIDATION_CAMEL_CASE_SINGULAR_FROMValidation();

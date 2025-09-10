@@ -1,8 +1,9 @@
 'use strict';
-import { DataTypes, Model } from 'sequelize';
-import { sequelize } from '../system/core/db.connection.js';
+import { sequelize, DataTypes, Model } from '../system/core/db.connection.js';
+import { BaseModel } from '../system/core/model/base.model.js';
 
-class RoleResourcePermissionView extends Model {
+class RoleResourcePermissionView extends BaseModel {
+  static autoRegisterCommonHooks = false;
   static associate(models) {
     this.belongsTo(models.Role, { foreignKey: 'roleID' });
     this.belongsTo(models.Resource, { foreignKey: 'resourceID' });
@@ -13,28 +14,28 @@ class RoleResourcePermissionView extends Model {
 RoleResourcePermissionView.init(
   {
     id: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
     },
     roleID: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       allowNull: false,
       references: {
         model: {
-          tableName: 'roles',
+          tableName: 'acl_roles',
           modelName: 'Role',
         },
         key: 'id',
       },
     },
     roleParentID: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       allowNull: true, // Allow null for top-level roles
       references: {
         model: {
-          tableName: 'roles',
+          tableName: 'acl_roles',
           modelName: 'Role',
         },
         key: 'id',
@@ -49,22 +50,22 @@ RoleResourcePermissionView.init(
       allowNull: true,
     },
     resourceID: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       allowNull: false,
       references: {
         model: {
-          tableName: 'resources',
+          tableName: 'acl_resources',
           modelName: 'Resource',
         },
         key: 'id',
       },
     },
     resourceParentID: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       allowNull: true,
       references: {
         model: {
-          tableName: 'resources',
+          tableName: 'acl_resources',
           modelName: 'Resource',
         },
         key: 'id',
@@ -79,11 +80,11 @@ RoleResourcePermissionView.init(
       allowNull: true,
     },
     permissionID: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       allowNull: false,
       references: {
         model: {
-          tableName: 'permissions',
+          tableName: 'acl_permissions',
           modelName: 'Permission',
         },
         key: 'id',

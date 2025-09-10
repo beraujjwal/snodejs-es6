@@ -1,5 +1,4 @@
 'use strict';
-import autoBind from '../../autobind.js';
 import Base from '../base/index.js';
 
 class BaseMiddleware extends Base {
@@ -10,7 +9,6 @@ class BaseMiddleware extends Base {
    */
   constructor() {
     super();
-    autoBind(this);
   }
 }
 

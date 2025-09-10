@@ -15,8 +15,11 @@ export const keyExists = async (key) => {
 
 export const setValue = async (key, value, timeout = '5m') => {
   try {
+    const stringifiedValue = isPlainObject(value)
+      ? JSON.stringify(value)
+      : value;
     const expiresIn = getExpiresInTime(timeout);
-    await redisClient.set(key, value, { EX: expiresIn });
+    await redisClient.set(key, stringifiedValue, { EX: expiresIn });
     return true;
   } catch (ex) {
     console.error('Redis Set Value Error:', ex);
@@ -26,7 +29,9 @@ export const setValue = async (key, value, timeout = '5m') => {
 
 export const getValue = async (key) => {
   try {
-    return await redisClient.get(key);
+    const value = await redisClient.get(key);
+    if (!value) return null;
+    return JSON.parse(value);
   } catch (ex) {
     console.error(ex);
   }
@@ -40,9 +45,22 @@ export const deleteValue = async (key) => {
   }
 };
 
+export const incrementValue = async (key, ttl = 60) => {
+  try {
+    const count = await redisClient.incr(key);
+    if (count === 1) await redisClient.expire(key, ttl); // Set TTL only on first increment
+    return count;
+  } catch (ex) {
+    console.error('Redis Incr Error:', ex);
+    return 0;
+  }
+};
+
 const getExpiresInTime = (expiresIn) => {
+  if (typeof expiresIn === 'number') return expiresIn;
+
   const redisExpiresIn = expiresIn || config.expires || '5m';
-  const redisExpiresInInt = parseInt(redisExpiresIn);
+  const redisExpiresInInt = parseInt(redisExpiresIn, 10);
   const redisExpiresString = redisExpiresIn
     .replace(redisExpiresInInt, '')
     .trim();
@@ -57,4 +75,12 @@ const getExpiresInTime = (expiresIn) => {
     default:
       return redisExpiresInInt; // Default to seconds
   }
+};
+
+const isPlainObject = (value) => {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    Object.prototype.toString.call(value) === '[object Object]'
+  );
 };

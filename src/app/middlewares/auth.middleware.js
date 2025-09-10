@@ -52,8 +52,8 @@ class AuthMiddleware extends Middleware {
       const user = await this.User.findByPk(decoded.id, {
         attributes: [
           'id',
-          'first_name',
-          'last_name',
+          'firstName',
+          'lastName',
           'email',
           'phone',
           'status',
@@ -68,9 +68,9 @@ class AuthMiddleware extends Middleware {
             },
             required: true,
             through: {
-              where: {
-                status: true,
-              },
+              // where: {
+              //   status: true,
+              // },
               attributes: [],
             },
             where: {
@@ -79,11 +79,11 @@ class AuthMiddleware extends Middleware {
           },
           {
             model: this.UserDevice,
-            as: 'userDevices',
+            as: 'userDevice',
             where: {
               deviceId: deviceId,
               deviceSalt: decoded.tokenSalt,
-              status: true,
+              //status: true,
             },
             attributes: [
               'id',
@@ -97,18 +97,15 @@ class AuthMiddleware extends Middleware {
               'os',
               'deviceId',
             ],
-            limit: 1, // Get only the latest post
-            order: [['createdAt', 'DESC']], // Sort by latest createdAt
           },
         ],
-        logging: console.log,
       });
       const userData = user ? user.toJSON() : null;
 
       if (userData === null || userData.isCompleted === false)
         throw new BaseError(`Invalid authorization token.`, 401);
 
-      if (userData?.userDevices.length === 0)
+      if (!userData?.userDevice)
         throw new BaseError(`Invalid authorization token.`, 401);
 
       const authorities = [];

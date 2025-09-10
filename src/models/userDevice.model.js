@@ -1,9 +1,9 @@
 'use strict';
-import 'dotenv/config';
-import bcrypt from 'bcryptjs';
 import { sequelize, DataTypes, Model } from '../system/core/db.connection.js';
+import { BaseModel } from '../system/core/model/base.model.js';
 
-class UserDevice extends Model {
+class UserDevice extends BaseModel {
+  static autoRegisterCommonHooks = false;
   static associate(models) {
     // User Devices Relationship
     this.belongsTo(models.User, {
@@ -16,19 +16,19 @@ class UserDevice extends Model {
 UserDevice.init(
   {
     id: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
       unique: true,
       allowNull: false,
     },
     userID: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       required: true,
       index: true,
       references: {
         model: {
-          tableName: 'users',
+          tableName: 'gnrl_users',
           modelName: 'User',
         },
         key: 'id',
@@ -108,7 +108,7 @@ UserDevice.init(
   {
     sequelize,
     modelName: 'UserDevice',
-    tableName: 'user_devices',
+    tableName: 'gnrl_user_devices',
     timestamps: true, // Automatically adds `createdAt` and `updatedAt`
     paranoid: true, // Enables `deletedAt` for soft deletes
   }

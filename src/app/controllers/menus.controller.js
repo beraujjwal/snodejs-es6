@@ -4,7 +4,6 @@ import { BaseError } from '../../system/core/error/baseError.js';
 import Controller from './controller.js';
 
 import Menu from '../services/menu.service.js';
-const menuService = new Menu('Menu');
 
 class menusController extends Controller {
   /**
@@ -45,7 +44,7 @@ class menusController extends Controller {
    */
   async menusDDLList({ query }, { transaction }) {
     query.return_type = 'ddl';
-    let result = await this.service.menusList(query);
+    let result = await this.service.menusList(query, { transaction });
     if (result) {
       return {
         code: 200,
@@ -88,7 +87,6 @@ class menusController extends Controller {
    */
   async menuDetails({ params }, { transaction }) {
     let menuId = params.id;
-    console.log(`menuId=>${menuId}`);
     let result = await this.service.findOnePermission(menuId, { transaction });
     if (result) {
       return {
@@ -182,4 +180,5 @@ class menusController extends Controller {
   }
 }
 
+const menuService = new Menu('Menu');
 export default new menusController(menuService);

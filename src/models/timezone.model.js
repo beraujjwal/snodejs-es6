@@ -1,8 +1,9 @@
 'use strict';
-import { DataTypes, Model } from 'sequelize';
-import { sequelize } from '../system/core/db.connection.js';
+import { sequelize, DataTypes, Model } from '../system/core/db.connection.js';
+import { BaseModel } from '../system/core/model/base.model.js';
 
-class Timezone extends Model {
+class Timezone extends BaseModel {
+  static autoRegisterCommonHooks = false;
   static associate(models) {
     this.belongsTo(models.Region, { foreignKey: 'regionID', as: 'region' });
     this.belongsTo(models.SubRegion, {
@@ -15,7 +16,7 @@ class Timezone extends Model {
 Timezone.init(
   {
     id: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
@@ -67,11 +68,11 @@ Timezone.init(
       allowNull: false,
     },
     regionID: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       allowNull: false,
       references: {
         model: {
-          tableName: 'regions',
+          tableName: 'gnrl_regions',
           modelName: 'Region',
         },
         key: 'id',
@@ -80,11 +81,11 @@ Timezone.init(
       onDelete: 'RESTRICT',
     },
     subRegionID: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       allowNull: false,
       references: {
         model: {
-          tableName: 'sub_regions',
+          tableName: 'gnrl_sub_regions',
           modelName: 'SubRegion',
         },
         key: 'id',
@@ -129,7 +130,7 @@ Timezone.init(
   {
     sequelize,
     modelName: 'Timezone',
-    tableName: 'timezones',
+    tableName: 'gnrl_timezones',
     timestamps: true,
     paranoid: true,
     defaultScope: {

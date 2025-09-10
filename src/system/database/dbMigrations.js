@@ -2,46 +2,40 @@
 
 import {
   runMigrations,
+  rollbackMigrations,
   runSeeders,
-  rollbackMigration,
+  rollbackSeeders,
 } from './migrationRunner.js';
-
-const dbManipulation = async (moduleArg) => {
-  const processName = moduleArg[1];
-  const processAction = moduleArg[0].slice(4);
-
-  console.log('processName', processName);
-  console.log('processAction', processAction);
-  console.log('arguments', moduleArg);
-
-  if (processAction === 'migration' && processName === 'up') {
-    let fileSet = null;
-    if (moduleArg[2] && moduleArg[2].toUpperCase() !== 'ALL') {
-      fileTo = moduleArg[2];
-    }
-    console.log('fileSet', fileSet);
-    await delay(1000);
-    runMigrations(fileSet);
-  } else if (processAction === 'migration' && processName === 'down') {
-    let fileSet = null;
-
-    if (moduleArg[2] && moduleArg[2].toUpperCase() !== 'ALL') {
-      fileTo = moduleArg[2];
-    }
-
-    console.log('fileSet', fileSet);
-
-    rollbackMigration(fileSet);
-  } else if (processAction === 'seeder' && processName === 'up') {
-    let fileSet = null;
-    if (moduleArg[2] && moduleArg[2].toUpperCase() !== 'ALL') {
-      fileTo = moduleArg[2];
-    }
-    await delay(1000);
-    runSeeders(fileSet);
-  }
-};
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export { dbManipulation };
+export const dbManipulation = async (moduleArg) => {
+  const processName = moduleArg[1]; // 'up' or 'down'
+  const processAction = moduleArg[0].slice(4); // 'migration' or 'seeder'
+  let fileTarget = null;
+
+  if (moduleArg[2] && moduleArg[2].toUpperCase() !== 'ALL') {
+    fileTarget = moduleArg[2];
+  }
+
+  try {
+    await delay(1000); // optional wait before execution
+
+    if (processAction === 'migration' && processName === 'up') {
+      await runMigrations({ to: fileTarget });
+    } else if (processAction === 'migration' && processName === 'down') {
+      await rollbackMigrations({ to: fileTarget });
+    } else if (processAction === 'seeder' && processName === 'up') {
+      await runSeeders({ to: fileTarget });
+    } else if (processAction === 'seeder' && processName === 'down') {
+      await rollbackSeeders({ to: fileTarget });
+    } else {
+      console.error(
+        '❌ Unknown command. Usage: db:ACTION up|down [filename|ALL]'
+      );
+    }
+  } catch (err) {
+    console.error(`❌ Error executing ${processAction} ${processName}:`, err);
+    process.exitCode = 1;
+  }
+};

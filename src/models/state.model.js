@@ -1,8 +1,9 @@
 'use strict';
-import { DataTypes, Model } from 'sequelize';
-import { sequelize } from '../system/core/db.connection.js';
+import { sequelize, DataTypes, Model } from '../system/core/db.connection.js';
+import { BaseModel } from '../system/core/model/base.model.js';
 
-class State extends Model {
+class State extends BaseModel {
+  static autoRegisterCommonHooks = false;
   static associate(models) {
     this.belongsTo(models.Country, { foreignKey: 'countryID', as: 'country' });
     this.hasMany(models.City, { foreignKey: 'stateID', as: 'cities' });
@@ -12,7 +13,7 @@ class State extends Model {
 State.init(
   {
     id: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
@@ -22,11 +23,11 @@ State.init(
       allowNull: false,
     },
     countryID: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       allowNull: false,
       references: {
         model: {
-          tableName: 'countries',
+          tableName: 'gnrl_countries',
           modelName: 'Country',
         },
         key: 'id',
@@ -60,14 +61,24 @@ State.init(
   {
     sequelize,
     modelName: 'State',
-    tableName: 'states',
-    timestamps: true,
-    paranoid: true,
+    tableName: 'gnrl_states',
+    timestamps: true, // Automatically adds `createdAt` and `updatedAt`
+    paranoid: true, // Enables `deletedAt` for soft deletes
+    footprint: true, // Enables `lastActivityBy` for last user activity
     defaultScope: {
       attributes: { exclude: ['deletedAt'] },
     },
     scopes: {
       active: { where: { status: true } },
+    },
+    indexes: [
+      { name: 'idx_gnrl_states_name', fields: ['name'] },
+      { name: 'idx_unique_gnrl_states_code', fields: ['code'] },
+      { name: 'idx_gnrl_states_type', fields: ['type'] },
+      { name: 'idx_gnrl_states_status', fields: ['status'] },
+    ],
+    hooks: {
+      beforeValidate: async (model, options) => {},
     },
   }
 );

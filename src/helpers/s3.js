@@ -1,5 +1,5 @@
 'use strict';
-const { S3Client } = require('@aws-sdk/client-s3');
+import { S3Client } from '@aws-sdk/client-s3';
 import config from '../config/s3.config.js';
 
 const credentials = {
