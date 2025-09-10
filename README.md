@@ -1,6 +1,6 @@
 ![SNodeJs](https://github.com/beraujjwal/snode/blob/main/SNodeJs.png?raw=true)
 
-## About SNodeJs
+## About SNodeJs-ES6
 
 SNodeJs is a Node.js application designed to demonstrate secure coding practices in web development. This project serves as a foundation for building secure, scalable web applications using Node.js.
 
@@ -23,7 +23,7 @@ I am open for a good job or work contract. You can contact me directly on my ema
 
 Hi! I'm Ujjwal Bera, I'm an open source enthusiast and devote my free time to building projects in this field.
 
-I'm the creator and maintainer of [MNodeJs](https://github.com/beraujjwal/mnodejs/blob/main/README.md) and [SNodeJs](https://github.com/beraujjwal/snode/blob/main/README.md).
+I'm the creator and maintainer of [MNodeJs](https://github.com/beraujjwal/mnodejs/blob/main/README.md), [SNodeJs](https://github.com/beraujjwal/snode/blob/main/README.md), [MNodeJs-ES6](https://github.com/beraujjwal/mnodejs-es6/blob/master/README.md) and [SNodeJs-ES6](https://github.com/beraujjwal/snodejs-es6/blob/master/README.md).
 
 I'm doing my best to provide you a good experience when using my apps, so if you like what I'm doing and wish to say "thanks!", You can appreciate me or my hard work and time spent to create this helpful structure with buying me a coffee.
 
@@ -37,21 +37,20 @@ I'm doing my best to provide you a good experience when using my apps, so if you
 - **Logging**: Comprehensive logging for monitoring and debugging.
 - **Error Handling**: Graceful handling of errors to enhance user experience.
 - **Integrated**: ACL with User permission & Role Permission.
-- **Libraries**: with Neo4J, Redis and Kafka.
 
 ### What is this repository for?
 
 - Structure node application
-- Version 2.0.1
+- Version 0.0.1
 
 ### Requirments
 
-- Node.js **16.20+** (Recommended **18.18**)
+- Node.js **20.X+** (Recommended **22.X**)
 - Mysql or Postgres
 
 ### How do I get set up?
 
-- git clone https://github.com/beraujjwal/snode.git
+- git clone https://github.com/beraujjwal/snodejs-es6.git
 - npm install
 - npm install --save-dev sequelize-cli
 - node cli run:migration up
