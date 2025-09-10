@@ -1,1 +1,0 @@
-MATCH (r:Resource {id: $id}) RETURN r

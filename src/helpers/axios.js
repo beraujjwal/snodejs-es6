@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export default (baseURL, options) => {
-  const instance = axios.create({
+	const instance = axios.create({
     baseURL,
     timeout: options?.timeout ?? 5000,
     withCredentials: true,
