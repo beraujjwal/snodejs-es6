@@ -2,7 +2,7 @@
 import Base from '../base/index.js';
 
 import { response } from '../helpers/apiResponse.js';
-import { sequelize } from '../db.connection.js';
+import { sequelize } from '../../database/db.js';
 import { BaseError } from '../error/baseError.js';
 
 class ExceptionHandlerMiddleware extends Base {

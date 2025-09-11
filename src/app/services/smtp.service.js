@@ -48,8 +48,6 @@ class Smtp extends Service {
       if (!response) throw new BaseError('Item not found.');
 
       return true;
-
-      //if(response.hasClaimSubStatus === true) throw new BaseError('Item is not active.');
     } catch (ex) {
       throw new BaseError(ex);
     }

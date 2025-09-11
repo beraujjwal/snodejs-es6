@@ -1,6 +1,7 @@
 'use strict';
-import { Sequelize, DataTypes, Model } from 'sequelize';
+import { Sequelize } from 'sequelize';
 import config from '../../config/db.config.js';
+
 const sequelize = new Sequelize(config.name, config.username, config.password, {
   host: config.host,
   port: config.port,
@@ -25,5 +26,4 @@ const sequelize = new Sequelize(config.name, config.username, config.password, {
   },
 });
 
-//console.log('sequelize', sequelize);
 export { sequelize };

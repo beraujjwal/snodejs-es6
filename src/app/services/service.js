@@ -12,7 +12,6 @@ class Service extends BaseService {
     super(model);
     this.model = this.getModel(model);
     this.name = model;
-    this.instances = {};
   }
 
   static getInstance(model) {

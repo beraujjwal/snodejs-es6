@@ -13,7 +13,7 @@ import { exceptionHandler } from '../app/middlewares/exceptionHandler.middleware
 const router = express.Router();
 
 router.group('/v1.0', (router) => {
-  router.get('/resources', exceptionHandler(resourcesController.resourcesList));
+  router.get('/resources', exceptionHandler(resourcesController.findAll));
 
   router.group('/resource', AuthMiddleware.verifyToken, (router) => {
     router.post(
@@ -22,13 +22,13 @@ router.group('/v1.0', (router) => {
         AclMiddleware.hasPermission('create', 'resources'),
         resourceValidation.create,
       ],
-      exceptionHandler(resourcesController.resourceStore)
+      exceptionHandler(resourcesController.createOne)
     );
 
     router.get(
       '/:id',
       [AclMiddleware.hasPermission('read', 'resources')],
-      exceptionHandler(resourcesController.resourceDetails)
+      exceptionHandler(resourcesController.findByPk)
     );
 
     router.put(
@@ -37,13 +37,13 @@ router.group('/v1.0', (router) => {
         AclMiddleware.hasPermission('update', 'resources'),
         resourceValidation.update,
       ],
-      exceptionHandler(resourcesController.resourceUpdate)
+      exceptionHandler(resourcesController.updateByPk)
     );
 
     router.patch(
       '/:id',
       [AclMiddleware.hasPermission('update', 'resources')],
-      exceptionHandler(resourcesController.resourceStatusUpdate)
+      exceptionHandler(resourcesController.switchStatusByPk)
     );
 
     router.delete(
@@ -52,7 +52,7 @@ router.group('/v1.0', (router) => {
         AuthMiddleware.verifyToken,
         AclMiddleware.hasPermission('delete', 'resources'),
       ],
-      exceptionHandler(resourcesController.resourceDelete)
+      exceptionHandler(resourcesController.destroy)
     );
   });
 

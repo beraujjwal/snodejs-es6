@@ -1,9 +1,11 @@
 'use strict';
 import { Sequelize, Op } from 'sequelize';
-import { BaseError } from '../../system/core/error/baseError.js';
+import {
+  BaseError,
+  ValidationError,
+} from '../../system/core/error/baseError.js';
 import Service from './service.js';
 
-import { validationError } from '../../system/core/error/validationError.js';
 import Resource from './resource.service.js';
 
 class Role extends Service {
@@ -58,7 +60,7 @@ class Role extends Service {
 
   async findAllRoles({ query }, { transaction }) {
     try {
-      let { order_by, order, limit, page, ...search } = query;
+      let { order_by, ordering, limit, page, ...search } = query;
       let filter = {};
       if (search.name != null && search.name.length > 0) {
         filter = { ...filter, name: { [Op.like]: `%${search.name}%` } };
@@ -68,6 +70,9 @@ class Role extends Service {
         query.order_by = 'parentID';
         query.order_by_can_be_null = true;
       }
+      query.ordering = ordering;
+      query.limit = limit;
+      query.page = page;
       if (query.parent != null && query.parent.length > 0) {
         filter = { ...filter, parentID: Number(query.parent) };
         query.parentID = Number(query.parent);
@@ -302,47 +307,13 @@ class Role extends Service {
     }
   }
 
-  /**
-   * @author Ujjwal Bera
-   *
-   * @param {*} roleId
-   * @returns
-   */
-  async checkUserRoleAvailablity(
-    { roles, parentRole, defaultRole = 'admin' },
-    session
-  ) {
-    try {
-      if (!roles) {
-        roles = [defaultRole]; // if role is not selected, setting default role for new user
-      }
-
-      let dbRoles = await this.db['Role'].findOne({
-        slug: { $in: roles },
-      });
-
-      if (dbRoles.length !== roles.length) {
-        throw new validationError(
-          { roles: ['You have selected an invalid role.'] },
-          412
-        );
-      }
-      return dbRoles.map((role) => role._id);
-    } catch (ex) {
-      throw new BaseError(
-        ex ||
-          'An error occurred while creating your account. Please try again.',
-        ex.code
-      );
-    }
-  }
-
   async createUserRole({ userId, roles }, { transaction }) {
     try {
       const userRoles = await Promise.all(
         roles.map(async (role) => {
           const roleDetails = await this.model.findOne({
             where: { slug: role },
+            transaction,
           });
 
           if (!roleDetails) throw new BaseError(`Role '${role}' not found.`);

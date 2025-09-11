@@ -3,7 +3,7 @@ import 'dotenv/config';
 import { chai, server, should } from './testConfig.js';
 import db from '../system/core/model/index.js';
 
-import { log, error, info } from'../system/core/helpers/errorLogs.js';
+import { log, error, info } from '../system/core/helpers/console.js';
 /**
  * Test cases to test all the authentication APIs
  * Covered Routes:
@@ -43,7 +43,6 @@ describe('User', () => {
   };
   var newTestData, newRootUserData;
   const createdID = [];
-
 
   describe('1) /POST Register user only with email', () => {
     it('It should send validation error for Register', (done) => {
@@ -106,7 +105,7 @@ describe('User', () => {
       chai
         .request(server)
         .get(
-          `/auth/verify/${newTestData.token.user}/${newTestData.token.token}`,
+          `/auth/verify/${newTestData.token.user}/${newTestData.token.token}`
         )
         .end((err, res) => {
           if (err) error(err);
@@ -268,7 +267,7 @@ describe('User', () => {
       chai
         .request(server)
         .get(
-          `/auth/verify/${newRootUserData.token.user}/${newRootUserData.token.token}`,
+          `/auth/verify/${newRootUserData.token.user}/${newRootUserData.token.token}`
         )
         .end((err, res) => {
           if (err) error(err);

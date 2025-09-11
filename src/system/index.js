@@ -9,13 +9,14 @@ import cors from 'cors';
 import path from 'path';
 import logger from 'morgan';
 import moment from 'moment-timezone';
-//import * as Sentry from '@sentry/node';
 
 import i18n from '../config/i18n.config.js';
 import winston, { LoggerStream } from '../config/winston.config.js';
-import { errorResponse } from './helpers/apiResponse.js';
+import { errorResponse } from './core/helpers/apiResponse.js';
 import limiter from '../config/rateLimit.config.js';
 import router from './route/index.js';
+
+//import { startDBListener } from './database/dbListener.js';
 
 import deepTrim from './core/middleware/deepTrimming.js';
 const __dirname = new URL('.', import.meta.url).pathname;
@@ -54,6 +55,9 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
+// Start DB listener in background
+//startDBListener();
+
 // Body parsing Middleware
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
@@ -90,7 +94,7 @@ app.get('/', async (req, res) => {
   return res.status(200).send({
     error: false,
     code: 200,
-    message: `Your claim application is running! \n Endpoints available at ${APP_URL}`,
+    message: `Your snodejs-es6 application is running! \n Endpoints available at ${APP_URL}`,
     indicate: 'OK',
   });
 });
@@ -100,7 +104,7 @@ app.get('/health', async (req, res) => {
   return res.status(200).send({
     error: false,
     code: 200,
-    message: 'Your claim application is running!',
+    message: 'Your snodejs-es6 application is running!',
     indicate: 'OK',
   });
 });

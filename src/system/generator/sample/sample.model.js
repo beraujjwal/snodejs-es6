@@ -1,5 +1,5 @@
 'use strict';
-import { sequelize, DataTypes, Model } from '../system/core/db.connection.js';
+import { sequelize, DataTypes } from '../system/core/db.connection.js';
 import { BaseModel } from '../system/core/model/base.model.js';
 
 class MODEL_SINGULAR_FORM extends BaseModel {
@@ -74,16 +74,15 @@ MODEL_SINGULAR_FORM.init(
     sequelize,
     modelName: 'MODEL_SINGULAR_FORM',
     tableName: 'TABLE_NAME_PLURAL_FORM',
-    timestamps: true,
-    paranoid: true,
+    timestamps: true, // Automatically adds `createdAt` and `updatedAt`
+    paranoid: true, // Enables `deletedAt` for soft deletes
+    footprint: true, // Enables `lastActivityBy` for last user activity
     defaultScope: {
       attributes: {
         exclude: ['deletedAt'],
       },
     },
-    hooks: {
-      beforeValidate: async (model, options) => {},
-    },
+    hooks: {},
   }
 );
 

@@ -208,7 +208,7 @@ export class BaseModel extends Model {
   };
 
   static init(attributes, options) {
-    // 👣 Add footprints
+    // Add footprints
     if (options.footprint) {
       attributes.lastActivityBy = {
         type: DataTypes.INTEGER,
@@ -222,7 +222,7 @@ export class BaseModel extends Model {
 
     const model = super.init(attributes, options);
 
-    // 📌 Footprint hooks (DRY)
+    // Footprint hooks
     if (options.footprint) {
       [
         'beforeValidate',
@@ -236,7 +236,7 @@ export class BaseModel extends Model {
       });
     }
 
-    // ✅ Common hooks registration
+    // Common hooks registration
     if (this.autoRegisterCommonHooks !== false) {
       model.addHook('beforeCreate', async (instance, opts) => {
         await this.commonBeforeSaveHook(instance, opts);
@@ -297,7 +297,7 @@ export class BaseModel extends Model {
     const ModelClass = instance.constructor;
     const transaction = options?.transaction || null;
 
-    // 🔒 Lock table rows for update (transaction-safe slug generation)
+    // Lock table rows for update (transaction-safe slug generation)
     const existingSlugs = await ModelClass.findAll({
       attributes: [slugTargetField],
       where: {

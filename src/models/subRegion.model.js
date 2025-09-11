@@ -1,6 +1,5 @@
 'use strict';
-import slugify from 'slugify';
-import { sequelize, DataTypes, Model } from '../system/core/db.connection.js';
+import { sequelize, DataTypes } from '../system/core/db.connection.js';
 import { BaseModel } from '../system/core/model/base.model.js';
 
 class SubRegion extends BaseModel {

@@ -1,10 +1,8 @@
 'use strict';
-import autoBind from '../../autobind.js';
 import Base from '../base/index.js';
 
-import { validator } from '../helpers/validate.js';
 import CustomValidator from '../helpers/customValidator.js';
-import { validationError } from '../helpers/apiResponse.js';
+import { validationErrorResponse } from '../helpers/apiResponse.js';
 
 class BaseValidation extends Base {
   /**
@@ -14,12 +12,11 @@ class BaseValidation extends Base {
    */
   constructor() {
     super();
-    autoBind(this);
   }
 
   /**
    * Validates the request body against the provided validation rules.
-   * 
+   *
    * @author Ujjwal Bera
    * @param {Object} req - The HTTP request object.
    * @param {Object} res - The HTTP response object.
@@ -38,7 +35,7 @@ class BaseValidation extends Base {
       customMessages,
       async (err, status) => {
         if (!status) {
-          return res.status(412).json(validationError(err));
+          return res.status(412).json(validationErrorResponse(err));
         } else {
           next();
         }

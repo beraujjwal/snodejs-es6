@@ -1,8 +1,10 @@
 'use strict';
 
+import statusCodes from './httpStatusCode.js';
+
 class BaseError extends Error {
   /**
-   * HTTP Error Class
+   * HTTP BaseError Class
    * @param {string|object} error - Error message or object
    * @param {number} code - HTTP status code (default: 500)
    */
@@ -11,64 +13,223 @@ class BaseError extends Error {
 
     if (!code) code = error?.code || 500;
 
-    Error.captureStackTrace(this, this.constructor);
-
-    const statusCodes = {
-      100: 'CONTINUE',
-      101: 'SWITCHING_PROTOCOLS',
-      102: 'PROCESSING',
-      103: 'EARLY_HINTS',
-      200: 'OK',
-      201: 'CREATED',
-      202: 'ACCEPTED',
-      203: 'NON_AUTHORITATIVE_INFORMATION',
-      204: 'NO_CONTENT',
-      205: 'RESET_CONTENT',
-      206: 'PARTIAL_CONTENT',
-      207: 'MULTI_STATUS',
-      208: 'ALREADY_REPORTED',
-      226: 'IM_USED',
-      300: 'MULTIPLE_CHOICES',
-      301: 'MOVED_PERMANENTLY',
-      302: 'FOUND',
-      303: 'SEE_OTHER',
-      304: 'NOT_MODIFIED',
-      305: 'USE_PROXY',
-      307: 'TEMPORARY_REDIRECT',
-      400: 'BAD_REQUEST',
-      401: 'UNAUTHORIZED',
-      403: 'FORBIDDEN',
-      404: 'NOT_FOUND',
-      405: 'METHOD_NOT_ALLOWED',
-      406: 'NOT_ACCEPTABLE',
-      407: 'PROXY_AUTHENTICATION_REQUIRED',
-      408: 'REQUEST_TIMEOUT',
-      409: 'CONFLICT',
-      410: 'GONE',
-      411: 'LENGTH_REQUIRED',
-      412: 'PRECONDITION_FAILED',
-      413: 'REQUEST_ENTITY_TOO_LARGE',
-      414: 'REQUEST_URI_TOO_LONG',
-      415: 'UNSUPPORTED_MEDIA_TYPE',
-      416: 'REQUESTED_RANGE_NOT_SATISFIABLE',
-      417: 'EXPECTATION_FAILED',
-      419: 'MISSING_ARGUMENTS',
-      420: 'INVALID_ARGUMENTS',
-      422: 'MISSING_REQUIRED_FIELDS',
-      500: 'INTERNAL_SERVER_ERROR',
-      501: 'NOT_IMPLEMENTED',
-      502: 'BAD_GATEWAY',
-      503: 'SERVICE_UNAVAILABLE',
-      504: 'GATEWAY_TIMEOUT',
-      505: 'HTTP_VERSION_NOT_SUPPORTED',
-      550: 'INITIALIZATION_FAILURE',
-    };
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, this.constructor);
+    } else {
+      this.stack = new Error(this.message).stack;
+    }
 
     this.code = code;
+    this.success = false; // clearer than status=false
     this.status = false;
     this.name = statusCodes[code] || 'INTERNAL_SERVER_ERROR';
-    this.errors = error?.errors || null;
+    this.errors = Array.isArray(error?.errors)
+      ? error.errors
+      : error?.errors
+        ? [error.errors]
+        : [];
+    this.isOperational = isOperational;
+  }
+
+  toJSON() {
+    return {
+      success: this.success,
+      code: this.code,
+      name: this.name,
+      message: this.message,
+      errors: this.errors,
+    };
+  }
+
+  statusCode() {
+    return this.code;
   }
 }
 
-export { BaseError };
+class BadRequestError extends Error {
+  constructor(message, code) {
+    super(message);
+    Error.captureStackTrace(this, this.constructor);
+
+    this.name = this.constructor.name;
+    this.success = false;
+    this.code = code || 400;
+  }
+
+  statusCode() {
+    return this.code;
+  }
+}
+
+class UnauthorizedError extends Error {
+  constructor(message) {
+    super(message);
+    Error.captureStackTrace(this, this.constructor);
+
+    this.name = this.constructor.name;
+    this.success = false;
+    this.code = 401;
+  }
+
+  statusCode() {
+    return this.code;
+  }
+}
+
+class PaymentRequiredError extends Error {
+  constructor(message) {
+    super(message);
+    Error.captureStackTrace(this, this.constructor);
+
+    this.name = this.constructor.name;
+    this.success = false;
+    this.code = 402;
+  }
+
+  statusCode() {
+    return this.code;
+  }
+}
+
+class ForbiddenError extends Error {
+  constructor(message) {
+    super(message);
+    Error.captureStackTrace(this, this.constructor);
+
+    this.name = this.constructor.name;
+    this.success = false;
+    this.code = 404;
+  }
+
+  statusCode() {
+    return this.code;
+  }
+}
+
+class NotFoundError extends Error {
+  constructor(message) {
+    super(message);
+    Error.captureStackTrace(this, this.constructor);
+
+    this.name = this.constructor.name;
+    this.success = false;
+    this.code = 404;
+  }
+
+  statusCode() {
+    return this.code;
+  }
+}
+
+class MethodNotAllowedError extends Error {
+  constructor(message) {
+    super(message);
+    Error.captureStackTrace(this, this.constructor);
+
+    this.name = this.constructor.name;
+    this.success = false;
+    this.code = 405;
+  }
+
+  statusCode() {
+    return this.code;
+  }
+}
+
+class InternalServerError extends Error {
+  constructor(message) {
+    super(message);
+    Error.captureStackTrace(this, this.constructor);
+
+    this.name = this.constructor.name;
+    this.success = false;
+    this.code = 500;
+  }
+
+  statusCode() {
+    return this.code;
+  }
+}
+
+class BadGatewayError extends Error {
+  constructor(message) {
+    super(message);
+    Error.captureStackTrace(this, this.constructor);
+
+    this.name = this.constructor.name;
+    this.success = false;
+    this.code = 502;
+  }
+
+  statusCode() {
+    return this.code;
+  }
+}
+
+class ServiceUnavailableError extends Error {
+  constructor(message) {
+    super(message);
+    Error.captureStackTrace(this, this.constructor);
+
+    this.name = this.constructor.name;
+    this.success = false;
+    this.code = 503;
+  }
+
+  statusCode() {
+    return this.code;
+  }
+}
+
+class CommonErrorError extends Error {
+  constructor(message, code) {
+    super(message);
+    Error.captureStackTrace(this, this.constructor);
+
+    this.name = this.constructor.name;
+    this.message = message;
+    this.code = code;
+    this.success = false;
+  }
+
+  statusCode() {
+    return this.code;
+  }
+}
+
+class ValidationError extends Error {
+  /**
+   * HTTP Error Class
+   * @param error
+   */
+  constructor(error) {
+    super(error);
+
+    Error.captureStackTrace(this, this.constructor);
+    this.code = 412;
+    this.success = false;
+    this.status = false;
+    this.message = 'Validation Error';
+    this.errors = error;
+    this.name = 'PRECONDITION_FAILED';
+  }
+
+  statusCode() {
+    return this.code;
+  }
+}
+
+export {
+  BaseError,
+  BadRequestError,
+  UnauthorizedError,
+  PaymentRequiredError,
+  ForbiddenError,
+  NotFoundError,
+  MethodNotAllowedError,
+  InternalServerError,
+  BadGatewayError,
+  ServiceUnavailableError,
+  CommonErrorError,
+  ValidationError,
+};

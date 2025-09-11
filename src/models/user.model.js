@@ -1,7 +1,7 @@
 'use strict';
 import 'dotenv/config';
 import bcrypt from 'bcryptjs';
-import { sequelize, DataTypes, Model } from '../system/core/db.connection.js';
+import { sequelize, DataTypes } from '../system/core/db.connection.js';
 import { BaseModel } from '../system/core/model/base.model.js';
 
 const saltRounds = parseInt(process.env.SALT_FACTOR, 10);

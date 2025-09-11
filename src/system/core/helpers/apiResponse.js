@@ -90,6 +90,7 @@ export const successResponse = (data = [], msg = 'OK', code = 200) => {
 };
 
 export const errorResponse = (err, code = 500) => {
+  if (!code) code = err?.code || 500;
   let { indicate } = codesObj.find((codeItem) => codeItem.code == code);
 
   let message = null;
@@ -117,7 +118,7 @@ export const notFoundResponse = (msg) => {
   };
 };
 
-export const validationError = (data, msg = null) => {
+export const validationErrorResponse = (data, msg = null) => {
   if (msg == null) msg = 'Validation failed';
   return {
     error: true,

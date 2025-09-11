@@ -1,9 +1,9 @@
 'use strict';
-import { sequelize, DataTypes, Model } from '../system/core/db.connection.js';
+import { sequelize, DataTypes } from '../system/core/db.connection.js';
 import { BaseModel } from '../system/core/model/base.model.js';
 
 class WorkLog extends BaseModel {
-  // 🚫 No common hooks — logs don’t need slug/order/status
+  // No common hooks — logs don’t need slug/order/status
   static autoRegisterCommonHooks = false;
   static associate(models) {
     this.belongsTo(models.User, {

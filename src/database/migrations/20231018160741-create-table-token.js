@@ -42,9 +42,7 @@ async function up({ context: queryInterface }) {
         sentFor: {
           type: Sequelize.ENUM(
             'activation',
-            'claim',
             'consent',
-            'dbol',
             'forgot_password',
             'password_reset',
             'other'

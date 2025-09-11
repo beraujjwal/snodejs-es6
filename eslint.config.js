@@ -1,39 +1,31 @@
-// eslint.config.js
 import js from '@eslint/js';
 import globals from 'globals';
-import { defineConfig } from 'eslint/config';
-import eslintPluginPrettier from 'eslint-plugin-prettier';
+import prettier from 'eslint-plugin-prettier';
+import stylistic from '@stylistic/eslint-plugin'; // For formatting rules
 
-export default defineConfig([
+export default [
   {
     files: ['**/*.{js,mjs,cjs}'],
     languageOptions: {
-      ecmaVersion: 'latest',
+      ecmaVersion: 2022,
       sourceType: 'module',
-      globals: {
-        ...globals.browser,
-        ...globals.node,
-      },
-    },
-    linterOptions: {
-      reportUnusedDisableDirectives: true,
+      globals: globals.node,
     },
     plugins: {
-      prettier: eslintPluginPrettier,
+      prettier,
+      '@stylistic': stylistic,
     },
     rules: {
-      // ✅ Prettier integration (formatting issues = lint errors)
-      'prettier/prettier': 'error',
-
-      // ✅ Recommended ESLint rules
       ...js.configs.recommended.rules,
 
-      // ✅ Custom rules
-      indent: ['error', 'tab'],
-      'linebreak-style': ['error', 'unix'],
-      quotes: ['error', 'single'],
-      semi: ['error', 'always'],
-      'no-console': ['error', { allow: ['warn', 'error'] }],
+      // Match Prettier formatting
+      '@stylistic/indent': ['error', 2], // ✅ 2 spaces, not tabs
+      '@stylistic/semi': ['error', 'always'],
+      '@stylistic/quotes': ['error', 'single'],
+      '@stylistic/comma-dangle': ['error', 'always-multiline'],
+
+      // Let Prettier handle final formatting
+      'prettier/prettier': 'error',
     },
   },
-]);
+];

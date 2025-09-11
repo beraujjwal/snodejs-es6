@@ -13,8 +13,6 @@ class Resource extends Service {
     super(model);
     this.model = this.getModel(model);
     this.name = model;
-    // this.permission = this.getModel('Permission');
-    // this.resourcePermission = this.getModel('ResourcePermission');
   }
 
   get permission() {
@@ -22,7 +20,6 @@ class Resource extends Service {
       this.instances['Permission'] = this.getModel('Permission');
     }
     return this.instances['Permission'];
-    //return this.getModel('Permission');
   }
 
   get resourcePermission() {
@@ -31,7 +28,6 @@ class Resource extends Service {
         this.getModel('ResourcePermission');
     }
     return this.instances['ResourcePermission'];
-    //return this.getModel('ResourcePermission');
   }
 
   static getInstance(model) {

@@ -2,6 +2,7 @@
 import { Sequelize, Op } from 'sequelize';
 import Base from '../base/index.js';
 import { BaseError } from '../error/baseError.js';
+import { error } from '../helpers/console.js';
 
 class BaseService extends Base {
   static instances = {};
@@ -16,6 +17,7 @@ class BaseService extends Base {
     super();
     this.model = this.getModel(model);
     this.name = model;
+    this.instances = {};
   }
 
   /**
@@ -89,9 +91,21 @@ class BaseService extends Base {
           include: mergedIncludes,
           order: orderingCondition,
           ...pagination,
+          lock: {
+            level: transaction.LOCK.UPDATE,
+            of: this.model,
+            skipLocked: true,
+          },
           transaction,
         }),
-        this.model.count({ where: filter, transaction }),
+        this.model.count({
+          where: filter,
+          // lock: {
+          //   level: transaction.LOCK.UPDATE,
+          //   skipLocked: true,
+          // },
+          transaction,
+        }),
       ]);
       //const rowsData = rows.map((item) => item.toJSON());
 
@@ -104,7 +118,7 @@ class BaseService extends Base {
         total,
       };
     } catch (ex) {
-      if (this.getEnv('APP_DEBUG')) console.error(ex);
+      if (this.getEnv('APP_DEBUG')) error(ex);
       throw new BaseError(
         ex.message || `Error fetching ${this.name}s list.`,
         ex.statusCode || ex.code || 400
@@ -151,6 +165,10 @@ class BaseService extends Base {
         where: filter,
         include: mergedIncludes,
         order: [order],
+        lock: {
+          level: transaction.LOCK.UPDATE,
+          skipLocked: true,
+        },
         transaction,
       });
       if (!item) throw new BaseError(`${this.name} not found.`, 404);
@@ -158,7 +176,7 @@ class BaseService extends Base {
       //const itemData = item?.toJSON();
       //return itemData;
     } catch (ex) {
-      if (this.getEnv('APP_DEBUG')) console.error(ex);
+      if (this.getEnv('APP_DEBUG')) error(ex);
       throw new BaseError(
         ex.message || `Error fetching ${this.name} details.`,
         ex.statusCode || ex.code || 400
@@ -186,7 +204,7 @@ class BaseService extends Base {
       const filter = { id };
       return this.findOne(null, { filter, include, attributes, transaction });
     } catch (ex) {
-      if (this.getEnv('APP_DEBUG')) console.error(ex);
+      if (this.getEnv('APP_DEBUG')) error(ex);
       throw new BaseError(
         ex.message || `Error fetching ${this.name} details.`,
         ex.statusCode || ex.code || 400
@@ -246,7 +264,7 @@ class BaseService extends Base {
       // return itemData;
       return item;
     } catch (ex) {
-      if (this.getEnv('APP_DEBUG')) console.error(ex);
+      if (this.getEnv('APP_DEBUG')) error(ex);
       throw new BaseError(
         ex.message || `Error adding new ${this.name}.`,
         ex.statusCode || ex.code || 400
@@ -273,7 +291,7 @@ class BaseService extends Base {
 
   //     return item;
   //   } catch (ex) {
-  //     console.error(ex);
+  //     error(ex);
   //     throw new BaseError(
   //       ex.message || `Error adding new ${this.name}.`,
   //       ex.statusCode || ex.code || 400
@@ -359,7 +377,7 @@ class BaseService extends Base {
       if (count > 0) return rows;
       return null;
     } catch (ex) {
-      if (this.getEnv('APP_DEBUG')) console.error(ex);
+      if (this.getEnv('APP_DEBUG')) error(ex);
       throw new BaseError(
         ex.message || `Error updating ${this.name}.`,
         ex.statusCode || ex.code || 400
@@ -390,7 +408,7 @@ class BaseService extends Base {
         returning,
       });
     } catch (ex) {
-      if (this.getEnv('APP_DEBUG')) console.error(ex);
+      if (this.getEnv('APP_DEBUG')) error(ex);
       throw new BaseError(
         ex.message || `Error updating ${this.name}.`,
         ex.statusCode || ex.code || 400
@@ -483,7 +501,7 @@ class BaseService extends Base {
 
       return results;
     } catch (ex) {
-      if (this.getEnv('APP_DEBUG')) console.error(ex);
+      if (this.getEnv('APP_DEBUG')) error(ex);
       throw new BaseError(
         ex.message || `Error updating ${this.name}.`,
         ex.statusCode || ex.code || 400
@@ -519,7 +537,7 @@ class BaseService extends Base {
       if (count > 0) return rows;
       return null;
     } catch (ex) {
-      if (this.getEnv('APP_DEBUG')) console.error(ex);
+      if (this.getEnv('APP_DEBUG')) error(ex);
       throw new BaseError(
         ex.message || `Error updating ${this.name} status.`,
         ex.statusCode || ex.code || 400
@@ -549,12 +567,16 @@ class BaseService extends Base {
         (key) => data[key] === undefined && delete data[key]
       );
       if (!dbItem) {
-        return await this.createOne(data, { transaction });
+        return await this.createOne(data, { transaction, user });
       }
-      return await dbItem.update(data, { transaction, returning: true });
+      return await dbItem.update(data, {
+        transaction,
+        returning: true,
+        userID: parseInt(user.id),
+      });
       //return this.findOne(null, { filter, transaction });
     } catch (ex) {
-      if (this.getEnv('APP_DEBUG')) console.error(ex);
+      if (this.getEnv('APP_DEBUG')) error(ex);
       throw new BaseError(
         ex.message || `Error updating ${this.name}.`,
         ex.statusCode || ex.code || 400
@@ -591,7 +613,7 @@ class BaseService extends Base {
       });
       return dbItem;
     } catch (ex) {
-      if (this.getEnv('APP_DEBUG')) console.error(ex);
+      if (this.getEnv('APP_DEBUG')) error(ex);
       throw new BaseError(
         ex.message || `Error in deleting ${this.name}.`,
         ex.statusCode || ex.code || 400
@@ -615,9 +637,13 @@ class BaseService extends Base {
   async deleteById(id, { transaction, user }) {
     try {
       const filter = { id };
-      return await this.destroy(null, { filter, transaction, user });
+      return await this.destroy(null, {
+        filter,
+        transaction,
+        userID: parseInt(user.id),
+      });
     } catch (ex) {
-      if (this.getEnv('APP_DEBUG')) console.error(ex);
+      if (this.getEnv('APP_DEBUG')) error(ex);
       throw new BaseError(
         ex.message || `Error in deleting ${this.name}.`,
         ex.statusCode || ex.code || 400
@@ -640,7 +666,7 @@ class BaseService extends Base {
       }, []);
       return { [Op.and]: filters };
     } catch (ex) {
-      if (this.getEnv('APP_DEBUG')) console.error(ex);
+      if (this.getEnv('APP_DEBUG')) error(ex);
       throw new BaseError(
         ex.message || 'Error generating query.',
         ex.statusCode || ex.code || 400
@@ -695,7 +721,7 @@ class BaseService extends Base {
 
       return filters.length ? { [Op.and]: filters } : {};
     } catch (ex) {
-      if (this.getEnv?.('APP_DEBUG')) console.error(ex);
+      if (this.getEnv?.('APP_DEBUG')) error(ex);
       throw new BaseError(
         ex.message || 'Error generating query.',
         ex.statusCode || ex.code || 400

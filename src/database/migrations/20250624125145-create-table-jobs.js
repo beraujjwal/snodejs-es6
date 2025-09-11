@@ -16,14 +16,7 @@ async function up({ context: queryInterface }) {
           primaryKey: true,
         },
         module: {
-          type: Sequelize.ENUM(
-            'carrier',
-            'claim',
-            'complaint',
-            'dbol',
-            'user',
-            'other'
-          ),
+          type: Sequelize.STRING(30),
           allowNull: false,
         },
         source: {

@@ -1,6 +1,6 @@
 'use strict';
 import 'dotenv/config';
-import { noCase, snakeCase } from 'change-case';
+import { noCase, snakeCase, camelCase } from 'change-case';
 import pluralize from 'pluralize';
 
 import autoBind from 'auto-bind';
@@ -44,7 +44,7 @@ class Base {
 
   /**
    * Converts a name to camelCase and then pluralizes it.
-   * 
+   *
    * @param {string} name - The name to convert.
    * @returns {string} The camelCase pluralized name.
    */

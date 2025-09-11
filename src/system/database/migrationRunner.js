@@ -40,7 +40,7 @@ const runMigrations = async ({ to, step, logging = false } = {}) => {
       logger: logging ? console : undefined,
     });
 
-    // 📌 Run migrations
+    // Run migrations
     let result;
     if (to) {
       result = await migrator.up({ to });

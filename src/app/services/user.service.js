@@ -253,7 +253,6 @@ class User extends Service {
         accessToken: encrypt(accessToken),
         refreshToken: encrypt(refreshToken),
         expiresIn: await getExpiresInTime(),
-        currentDateTime: moment().utc(this.getEnv('APP_TIMEZONE')).toDate(),
       };
 
       const filter = { id: user.id };
@@ -262,7 +261,7 @@ class User extends Service {
         blockExpires: moment().utc(this.getEnv('APP_TIMEZONE')).toDate(),
       };
 
-      this.model.update(data, { where: filter }, { transaction });
+      await this.model.update(data, { where: filter }, { transaction });
 
       const userWithLatestData = { ...user, ...data };
       delete userWithLatestData.password;

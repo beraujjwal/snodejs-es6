@@ -1,4 +1,4 @@
-import { sequelize } from '../system/core/db.connection.js';
+import { sequelize } from '../system/database/db.js';
 
 export const createDBUser = async (username, dbPassword) => {
   try {

@@ -18,14 +18,7 @@ Job.init(
       allowNull: false,
     },
     module: {
-      type: DataTypes.ENUM(
-        'carrier',
-        'claim',
-        'complaint',
-        'dbol',
-        'user',
-        'other'
-      ),
+      type: DataTypes.STRING(30),
       allowNull: false,
     },
     source: {

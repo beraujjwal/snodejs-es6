@@ -76,7 +76,7 @@ class AuthController extends Controller {
         500
       );
 
-    const tokenServiceResult = await this.tokenService.createToken(
+    await this.tokenService.createToken(
       {
         userId: user.user.id,
         sentFor: 'ACTIVATION',
