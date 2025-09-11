@@ -1,9 +1,9 @@
 'use strict';
-import { sequelize, DataTypes, Model } from '../system/core/db.connection.js';
+import { sequelize, DataTypes } from '../system/core/db.connection.js';
 import { BaseModel } from '../system/core/model/base.model.js';
 
 class Job extends BaseModel {
-  // ✅ Per-model configuration
+  // Per-model configuration
   static autoRegisterCommonHooks = false;
 
   static associate(models) {}
