@@ -44,7 +44,7 @@ async function up({ context: queryInterface }) {
           timezone: 'Asia/Kolkata',
           status: true,
           verified: JSON.stringify({ email: true, phone: true }),
-          lastActivityBy: null,
+          lastActivityBy: 1,
           deletedAt: null,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -59,7 +59,7 @@ async function up({ context: queryInterface }) {
 
   if (dbName === 'postgres') {
     await queryInterface.sequelize.query(
-      'SELECT setval(`gnrl_users_id_seq`, (SELECT MAX(id) FROM gnrl_users))'
+      "SELECT setval('gnrl_users_id_seq', (SELECT MAX(id) FROM gnrl_users))"
     );
   }
 }

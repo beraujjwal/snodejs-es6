@@ -79,9 +79,9 @@ SubRegion.init(
       { name: 'idx_gnrl_sub_regions_name', fields: ['name'] },
       { name: 'idx_gnrl_sub_regions_status', fields: ['status'] },
     ],
-    hooks: {
-      beforeValidate: async (model, options) => {},
-    },
+    // hooks: {
+    //   beforeValidate: async (model, options) => {},
+    // },
   }
 );
 

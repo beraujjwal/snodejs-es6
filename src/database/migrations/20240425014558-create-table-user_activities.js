@@ -135,21 +135,21 @@ async function up({ context: queryInterface }) {
         transaction,
       });
       // Assuming pg_cron is installed and configured
-      await queryInterface.sequelize.query(
-        `
-        SELECT cron.schedule(
-          'update_user_activity_to_expired_status',
-          '*/1 * * * *',
-          $$
-          UPDATE gnrl_user_activities
-          SET "activityStatus" = 'close'
-          WHERE "activityStatus" != 'close'
-            AND "clockOut" < NOW() - INTERVAL '5 minutes'
-          $$
-        );
-          `,
-        { transaction }
-      );
+      // await queryInterface.sequelize.query(
+      //   `
+      //   SELECT cron.schedule(
+      //     'update_user_activity_to_expired_status',
+      //     '*/1 * * * *',
+      //     $$
+      //     UPDATE gnrl_user_activities
+      //     SET "activityStatus" = 'close'
+      //     WHERE "activityStatus" != 'close'
+      //       AND "clockOut" < NOW() - INTERVAL '5 minutes'
+      //     $$
+      //   );
+      //     `,
+      //   { transaction }
+      // );
     }
 
     await transaction.commit();

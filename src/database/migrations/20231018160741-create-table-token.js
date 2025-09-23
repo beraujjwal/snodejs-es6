@@ -107,17 +107,17 @@ async function up({ context: queryInterface }) {
               DELETE FROM gnrl_tokens WHERE status = false AND createdAt < DATE_SUB(NOW(), INTERVAL 2 DAY);`,
         { transaction }
       );
-    } else if (dbName === 'postgres') {
-      await queryInterface.sequelize.query(
-        `
-        SELECT cron.schedule(
-          'daily_token_cleanup',
-          '0 0 * * *',
-          $$DELETE FROM gnrl_tokens WHERE status = false AND "createdAt" < NOW() - INTERVAL '2 days'$$
-        );
-          `,
-        { transaction }
-      );
+    // } else if (dbName === 'postgres') {
+    //   await queryInterface.sequelize.query(
+    //     `
+    //     SELECT cron.schedule(
+    //       'daily_token_cleanup',
+    //       '0 0 * * *',
+    //       $$DELETE FROM gnrl_tokens WHERE status = false AND "createdAt" < NOW() - INTERVAL '2 days'$$
+    //     );
+    //       `,
+    //     { transaction }
+    //   );
     }
 
     await transaction.commit();

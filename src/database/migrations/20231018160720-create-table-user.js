@@ -251,6 +251,37 @@ async function up({ context: queryInterface }) {
         `,
         { transaction }
       );
+
+      // LISTEN/NOTIFY channels
+      await queryInterface.sequelize.query(
+        `
+            CREATE OR REPLACE FUNCTION gnrl_users_channels_fn()
+            RETURNS trigger AS $$
+            BEGIN
+              PERFORM pg_notify('user_changes', row_to_json(NEW)::text);
+              RETURN NEW;
+            END;
+            $$ LANGUAGE plpgsql;
+              `,
+        { transaction }
+      );
+      await queryInterface.sequelize.query(
+        `
+            DO $$
+            BEGIN
+              IF NOT EXISTS (
+                SELECT 1 FROM pg_trigger WHERE tgname = 'gnrl_users_channels'
+              ) THEN
+                CREATE TRIGGER gnrl_users_channels
+                AFTER INSERT OR UPDATE OR DELETE ON gnrl_users
+                FOR EACH ROW
+                EXECUTE FUNCTION gnrl_users_channels_fn();
+              END IF;
+            END;
+            $$;
+              `,
+        { transaction }
+      );
     }
 
     await queryInterface.addColumn(
@@ -264,7 +295,7 @@ async function up({ context: queryInterface }) {
         },
         allowNull: false,
         onUpdate: 'CASCADE',
-        onDelete: 'RESTRICT',
+        onDelete: 'CASCADE',
       },
       { transaction }
     );

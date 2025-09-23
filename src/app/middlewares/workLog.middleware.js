@@ -27,8 +27,7 @@ class WorkLogMiddleware extends Middleware {
       try {
         const decoded = req.user;
         const userID = decoded.id;
-        const { 'x-device-id': deviceId, 'x-device-fcm-token': fcmToken } =
-          req.headers;
+        const { 'x-device-id': deviceId } = req.headers;
         let referenceID = null;
         if (dataSource) referenceID = req[dataSource][field];
         const { files, body, query, params } = req;

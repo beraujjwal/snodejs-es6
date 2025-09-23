@@ -64,6 +64,13 @@ I'm doing my best to provide you a good experience when using my apps, so if you
 - node cli make:service product
 - node cli make:validation product
 
+### Helpfull Easy intregrations of important features
+
+- node enable redis
+- node enable socket
+- node enable kafka
+- node enable neo4j
+
 ### Contribution guidelines
 
 - Writing tests

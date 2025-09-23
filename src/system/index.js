@@ -16,7 +16,7 @@ import { errorResponse } from './core/helpers/apiResponse.js';
 import limiter from '../config/rateLimit.config.js';
 import router from './route/index.js';
 
-//import { startDBListener } from './database/dbListener.js';
+import { startDBListener } from './database/dbListener.js';
 
 import deepTrim from './core/middleware/deepTrimming.js';
 const __dirname = new URL('.', import.meta.url).pathname;
@@ -28,7 +28,7 @@ import { APP_PORT, APP_ENV, APP_URL, APP_TIMEZONE } from '../config/config.js';
 const app = express();
 app.use(useragent.express());
 
-console.log(`🛠️   Bootstrapping Application`);
+console.log('🛠️   Bootstrapping Application');
 
 let errorCount = 0;
 
@@ -55,8 +55,8 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-// Start DB listener in background
-//startDBListener();
+//Basic rate-limiting middleware for Express.
+app.use(limiter);
 
 // Body parsing Middleware
 app.use(express.json({ limit: '50mb' }));
@@ -74,11 +74,11 @@ app.use(deepTrim.handle);
 // i18n
 app.use(i18n);
 
-//Basic rate-limiting middleware for Express.
-app.use(limiter);
-
 //Helmet helps you secure your Express apps by setting various HTTP headers.
 app.use(helmet());
+
+// Start DB listener in background
+startDBListener();
 
 console.log(`👉  Mode: ${APP_ENV}`);
 console.log(`👉  Port: ${APP_PORT}`);

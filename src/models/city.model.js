@@ -10,6 +10,21 @@ class City extends BaseModel {
       as: 'state',
     });
   }
+
+  // Custom toJSON method
+  toJSON() {
+    const attributes = { ...this.get() };
+
+    // Remove fields you don’t want to expose
+    delete attributes?.deletedAt;
+    delete attributes?.createdAt;
+    delete attributes?.updatedAt;
+
+    // Example: rename fields or add computed
+    // attributes.fullLocation = `${attributes.name}, ${attributes.stateID}`;
+
+    return attributes;
+  }
 }
 
 City.init(
@@ -88,7 +103,7 @@ City.init(
       { name: 'idx_gnrl_cities_status', fields: ['status'] },
     ],
     hooks: {
-      beforeValidate: async (model, options) => {},
+      //beforeValidate: async (model, options) => {},
     },
   }
 );

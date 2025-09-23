@@ -100,10 +100,6 @@ class BaseService extends Base {
         }),
         this.model.count({
           where: filter,
-          // lock: {
-          //   level: transaction.LOCK.UPDATE,
-          //   skipLocked: true,
-          // },
           transaction,
         }),
       ]);

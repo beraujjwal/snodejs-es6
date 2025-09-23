@@ -10,19 +10,6 @@ import {
   DB_QUERY_LOG,
 } from './config.js';
 
-//postgresql://postgres:WQAehKVksnVtkwyCiJlRAVsHarXIlgEZ@hopper.proxy.rlwy.net:26260/railway
-
-// export default {
-//   dialect: DB_DIALECT,
-//   host: "hopper.proxy.rlwy.net",
-//   name: "railway",
-//   port: 26260,
-//   username: "postgres",
-//   password: "WQAehKVksnVtkwyCiJlRAVsHarXIlgEZ",
-//   sync: DB_SYNC,
-//   logging: DB_QUERY_LOG,
-// };
-
 export default {
   dialect: DB_DIALECT,
   host: DB_HOST,

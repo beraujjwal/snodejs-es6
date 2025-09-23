@@ -1,7 +1,8 @@
 import axios from 'axios';
+// import axiosRetry from 'axios-retry';
 
 export default (baseURL, options) => {
-	const instance = axios.create({
+  const instance = axios.create({
     baseURL,
     timeout: options?.timeout ?? 5000,
     withCredentials: true,
@@ -15,26 +16,44 @@ export default (baseURL, options) => {
     // }),
   });
 
+  // Configure retries with exponential backoff
+  // axiosRetry(instance, {
+  //   retries: options?.retries ?? 3, // number of retries
+  //   retryDelay: axiosRetry.exponentialDelay, // exponential backoff
+  //   retryCondition: (error) => {
+  //     // Retry on network errors or 5xx responses
+  //     return (
+  //       axiosRetry.isNetworkError(error) ||
+  //       axiosRetry.isRetryableError(error) ||
+  //       error.response?.status >= 500
+  //     );
+  //   },
+  // });
+
   // Request Interceptor
   instance.interceptors.request.use((req) => {
-    req.headers['Request-Started-At'] = new Date().getTime();
+    req.metadata = { startTime: Date.now() };
     return req;
   });
 
   // Response Interceptor
   instance.interceptors.response.use(
     (res) => {
-      const startTime = res.config.headers['Request-Started-At'];
-      if (startTime) {
-        console.log(
-          `Execution time for: ${res.config.url} - ${new Date().getTime() - startTime} ms`
-        );
-      }
+      const duration = Date.now() - res.config.metadata.startTime;
+      console.log(`Execution time for: ${res.config.url} - ${duration} ms`);
       return res;
     },
     (error) => {
-      if (error.code === 'ECONNABORTED' && error.message.includes('timeout')) {
-        console.log('Request timed out');
+      const { config } = error;
+      if (config?.metadata?.startTime) {
+        const duration = Date.now() - config.metadata.startTime;
+        console.error(
+          `❌ [${config.method?.toUpperCase()} ${config.url}] failed after ${duration} ms`,
+          error.message
+        );
+      }
+      if (error.code === 'ECONNABORTED') {
+        console.error(`⏱️ Timeout: ${error.config?.url}`);
       }
       return Promise.reject(error);
     }

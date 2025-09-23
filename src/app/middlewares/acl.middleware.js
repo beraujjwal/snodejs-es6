@@ -1,19 +1,7 @@
 'use strict';
-import jwt from 'jsonwebtoken';
 
 import { Middleware } from './middleware.js';
 import { BaseError } from '../../system/core/error/baseError.js';
-import { encrypt, decrypt } from '../../helpers/encodeDecode.js';
-
-import {
-  keyExists,
-  setValue,
-  getValue,
-  deleteValue,
-} from '../../libraries/redis.library.js';
-
-import User from '../services/user.service.js';
-const userService = new User('User');
 
 class AclMiddleware extends Middleware {
   /**
@@ -38,24 +26,10 @@ class AclMiddleware extends Middleware {
     const userResourcePermissionView = this.getModel(
       'UserResourcePermissionView'
     );
-    const JWT_SECRET = this.getEnv('JWT_SECRET');
 
     return async function (req, res, next) {
       try {
-        const bearerHeader = req.headers['authorization'];
-        if (!bearerHeader || !bearerHeader.startsWith('Bearer '))
-          return next(new BaseError('Authorization token missing.', 401));
-        const token = decrypt(bearerHeader.split(' ')[1]);
-
-        const decoded = jwt.verify(token, JWT_SECRET);
-        const userRedisKey = `user-${decoded.id}`;
-        let userData = null;
-        if (await keyExists(userRedisKey)) {
-          userData = await getValue(userRedisKey);
-        } else {
-          throw new BaseError(`Invalid authorization token.`, 401);
-        }
-
+        let userData = req.user;
         let haveAccess = false;
         const userId = userData?.id;
         const roles = userData?.roles;

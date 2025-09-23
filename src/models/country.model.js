@@ -157,7 +157,7 @@ Country.init(
       { name: 'idx_gnrl_countries_status', fields: ['status'] },
     ],
     hooks: {
-      beforeValidate: async (model, options) => {},
+      //beforeValidate: async (model, options) => {},
     },
   }
 );

@@ -7,7 +7,6 @@ const sequelize = new Sequelize(config.name, config.username, config.password, {
   port: config.port,
   dialect: config.dialect,
   benchmark: true,
-  //logging: config.logging ? (sql) => console.log('📝 SQL', sql) : false,
   logging: config.logging
     ? (sql, timing) => {
         if (timing > 10) {

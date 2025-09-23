@@ -9,12 +9,12 @@ import Token from '../services/token.service.js';
 import { registrationVerificationEmail } from '../../libraries/email.library.js';
 import { encrypt, decrypt } from '../../helpers/encodeDecode.js';
 
-import {
-  keyExists,
-  setValue,
-  getValue,
-  deleteValue,
-} from '../../libraries/redis.library.js';
+// import {
+//   keyExists,
+//   setValue,
+//   getValue,
+//   deleteValue,
+// } from '../../libraries/redis.library.js';
 
 class AuthController extends Controller {
   /**
@@ -192,8 +192,8 @@ class AuthController extends Controller {
     }
     result.user.userDevice = latestUserDevice;
 
-    const userRedisKey = `user-${result.user.id}`;
-    setValue(userRedisKey, result.user, this.getEnv('JWT_EXPIRES_IN'));
+    //const userRedisKey = `user-${result.user.id}`;
+    //setValue(userRedisKey, result.user, this.getEnv('JWT_EXPIRES_IN'));
 
     //delete result.user.userDevices;
     return {

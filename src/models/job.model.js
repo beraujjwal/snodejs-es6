@@ -6,7 +6,7 @@ class Job extends BaseModel {
   // Per-model configuration
   static autoRegisterCommonHooks = false;
 
-  static associate(models) {}
+  // static associate(models) {}
 }
 
 Job.init(
@@ -69,9 +69,9 @@ Job.init(
         status: true,
       },
     },
-    hooks: {
-      beforeCreate: async (model) => {},
-    },
+    // hooks: {
+    //   beforeCreate: async (model) => {},
+    // },
   }
 );
 

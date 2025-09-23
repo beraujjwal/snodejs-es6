@@ -3,52 +3,59 @@
  */
 class LocaleService {
   /**
-   *
-   * @param i18nProvider The i18n provider
+   * @param {Object} i18nProvider - The i18n provider
    */
   constructor(i18nProvider) {
     this.i18nProvider = i18nProvider;
   }
-  /**
-   *
-   * @returns {string} The current locale code
-   */
+
+  /** @returns {string} The current locale code */
   getCurrentLocale() {
     return this.i18nProvider.getLocale();
   }
-  /**
-   *
-   * @returns string[] The list of available locale codes
-   */
+
+  /** @returns {string[]} The list of available locale codes */
   getLocales() {
     return this.i18nProvider.getLocales();
   }
+
   /**
-   *
-   * @param locale The locale to set. Must be from the list of available locales.
+   * @param {string} locale - The locale to set. Must be from the list of available locales.
    */
   setLocale(locale) {
-    if (this.getLocales().indexOf(locale) !== -1) {
+    if (this.isValidLocale(locale)) {
       this.i18nProvider.setLocale(locale);
+    } else {
+      throw new Error(`Invalid locale: ${locale}`);
     }
   }
+
   /**
-   *
-   * @param string String to translate
-   * @param args Extra parameters
+   * @param {string} string - String to translate
+   * @param {Record<string, any>} [args] - Extra parameters
    * @returns {string} Translated string
    */
-  translate(string, args = undefined) {
+  translate(string, args = {}) {
     return this.i18nProvider.translate(string, args);
   }
+
   /**
-   *
-   * @param phrase Object to translate
-   * @param count The plural number
-   * @returns {string} Translated string
+   * @param {string|Object} phrase - Object/string to translate
+   * @param {number} count - The plural number
+   * @param {Record<string, any>} [args] - Extra parameters
+   * @returns {string} Translated plural string
    */
-  translatePlurals(phrase, count) {
-    return this.i18nProvider.translateN(phrase, count);
+  translatePlurals(phrase, count, args = {}) {
+    return this.i18nProvider.translateN(phrase, count, args);
+  }
+
+  /**
+   * @param {string} locale - Locale code
+   * @returns {boolean} Whether the locale is valid
+   */
+  isValidLocale(locale) {
+    return this.getLocales().includes(locale);
   }
 }
-module.exports = { LocaleService };
+
+export { LocaleService };

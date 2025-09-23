@@ -178,6 +178,8 @@ const runSeeders = async ({ to, step, logging = false } = {}) => {
       result.map((s) => s.name)
     );
   } catch (error) {
+    console.log(error);
+    console.log(error.StackTrace);
     console.error('❌ Seeder execution error:', error.message);
     process.exitCode = 1;
   } finally {

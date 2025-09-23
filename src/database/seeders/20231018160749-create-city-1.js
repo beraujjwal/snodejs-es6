@@ -3,7 +3,7 @@
 async function up({context: queryInterface}) {
     await queryInterface
       .bulkInsert(
-        'cities',
+        'gnrl_cities',
         [
           {
             id: 52,

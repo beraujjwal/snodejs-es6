@@ -28,17 +28,6 @@ async function up({ context: queryInterface }) {
           expireAt: new Date(),
           createdAt: new Date(),
         },
-        {
-          id: 3,
-          userID: 3,
-          token: '543212',
-          sentTo: 'sms',
-          sentOn: '9876543212',
-          sentFor: 'activation',
-          status: true,
-          expireAt: new Date(),
-          createdAt: new Date(),
-        },
       ],
       {}
     )

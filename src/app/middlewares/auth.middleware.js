@@ -3,7 +3,9 @@ import jwt from 'jsonwebtoken';
 
 import { Middleware } from './middleware.js';
 import { BaseError } from '../../system/core/error/baseError.js';
-import { encrypt, decrypt } from '../../helpers/encodeDecode.js';
+import { decrypt } from '../../helpers/encodeDecode.js';
+
+// Import Redis Library Here (Don't remove this line)
 
 class AuthMiddleware extends Middleware {
   /**
@@ -32,22 +34,26 @@ class AuthMiddleware extends Middleware {
 
     try {
       if (!bearerHeader)
-        throw new BaseError(`Authorization token not found.`, 401);
+        throw new BaseError('Authorization token not found.', 401);
 
       const token = decrypt(bearerHeader.split(' ')[1]);
       if (!token)
-        throw new BaseError(`Unauthorized to access this section.`, 401);
-
-      //const decoded = jwt.verify(token, this.getEnv('JWT_SECRET'));
+        throw new BaseError('Unauthorized to access this section.', 401);
 
       let decoded;
       try {
         decoded = jwt.verify(token, this.getEnv('JWT_SECRET'));
       } catch (err) {
-        throw new BaseError(`Invalid authorization token.`, 401);
+        throw new BaseError('Invalid authorization token.', 401);
       }
 
-      if (!decoded) throw new BaseError(`Invalid authorization token.`, 401);
+      if (!decoded) throw new BaseError('Invalid authorization token.', 401);
+      let userData = null;
+
+      // const userRedisKey = `user-${decoded.id}`;
+      // if (await keyExists(userRedisKey)) {
+      //   userData = await getValue(userRedisKey);
+      // } else {
 
       const user = await this.User.findByPk(decoded.id, {
         attributes: [
@@ -68,9 +74,9 @@ class AuthMiddleware extends Middleware {
             },
             required: true,
             through: {
-              // where: {
-              //   status: true,
-              // },
+              where: {
+                status: true,
+              },
               attributes: [],
             },
             where: {
@@ -100,13 +106,14 @@ class AuthMiddleware extends Middleware {
           },
         ],
       });
-      const userData = user ? user.toJSON() : null;
+      userData = user ? user.toJSON() : null;
+      // } //no redis user info
 
       if (userData === null || userData.isCompleted === false)
-        throw new BaseError(`Invalid authorization token.`, 401);
+        throw new BaseError('Invalid authorization token.', 401);
 
       if (!userData?.userDevice)
-        throw new BaseError(`Invalid authorization token.`, 401);
+        throw new BaseError('Invalid authorization token.', 401);
 
       const authorities = [];
       const roles = userData.roles;
@@ -116,7 +123,7 @@ class AuthMiddleware extends Middleware {
 
       if (userRole) {
         if (!authorities.includes(userRole)) {
-          throw new BaseError(`Invalid authorization token.`, 401);
+          throw new BaseError('Invalid authorization token.', 401);
         }
       }
 

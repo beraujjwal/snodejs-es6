@@ -51,16 +51,16 @@ async function up({ context: queryInterface }) {
           allowNull: false,
           defaultValue: true,
         },
-        lastActivityBy: {
-          type: Sequelize.INTEGER,
-          references: {
-            model: 'gnrl_users',
-            key: 'id',
-          },
-          allowNull: false,
-          onUpdate: 'CASCADE',
-          onDelete: 'RESTRICT',
-        },
+        // lastActivityBy: {
+        //   type: Sequelize.INTEGER,
+        //   references: {
+        //     model: 'gnrl_users',
+        //     key: 'id',
+        //   },
+        //   allowNull: false,
+        //   onUpdate: 'CASCADE',
+        //   onDelete: 'RESTRICT',
+        // },
         deletedAt: {
           type: Sequelize.DATE,
           allowNull: true,

@@ -3,9 +3,8 @@ import 'dotenv/config';
 import http from 'http';
 // import os from 'os';
 //import cluster from 'cluster';
-// import { Server } from 'socket.io';
+import SocketEvent from './system/event/socketEvent.js';
 
-// import { socket } from './socket/index.js';
 import app from './system/index.js';
 const PORT = +process.env.APP_PORT || 4000;
 
@@ -27,18 +26,7 @@ const PORT = +process.env.APP_PORT || 4000;
 //   console.log(`Worker ${process.pid} is running`);
 const httpServer = http.createServer(app);
 
-// const io = new Server(httpServer, {
-//   transports: ['websocket', 'polling'],
-//   upgrade: false,
-//   maxHttpBufferSize: 1e8, // 100 MB we can upload to server (By Default = 1MB)
-//   pingTimeout: 60000, // increate the ping timeout
-//   cors: {
-//     origin: 'https://admin-api.ujjwalbera.work',
-//     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTION'],
-//   },
-// });
-
-// socket(io);
+SocketEvent.init(httpServer);
 
 // Memory monitoring
 // setInterval(() => {

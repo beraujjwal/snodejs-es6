@@ -8,16 +8,38 @@ export async function startDBListener() {
   });
 
   await pgClient.connect();
-  await pgClient.query('LISTEN trg_audit_logs_for_users');
 
+  // Listen to multiple channels
+  await pgClient.query('LISTEN user_changes');
+  // await pgClient.query('LISTEN trg_audit_logs_for_orders');
+  // await pgClient.query('LISTEN trg_audit_logs_for_payments');
+
+  // Handle notifications
   pgClient.on('notification', (msg) => {
     try {
-      const payload = JSON.parse(msg.payload);
-      console.log('DB Event:', payload);
+      const payload = msg.payload ? JSON.parse(msg.payload) : null;
 
-      // 👉 Here you can trigger mail logic
-      // sendMail(payload);
+      switch (msg.channel) {
+        case 'user_changes':
+          console.log('User event:', payload);
+          // handle user event logic
+          break;
+
+        // case 'trg_audit_logs_for_orders':
+        //   console.log('Order event:', payload);
+        //   // handle order event logic
+        //   break;
+
+        // case 'trg_audit_logs_for_payments':
+        //   console.log('Payment event:', payload);
+        //   // handle payment event logic
+        //   break;
+
+        default:
+          console.log('Unknown channel:', msg.channel, payload);
+      }
     } catch (err) {
+      console.error('Invalid payload:', err.message);
       console.error('Invalid payload:', msg.payload);
     }
   });
