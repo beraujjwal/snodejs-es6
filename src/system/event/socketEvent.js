@@ -1,5 +1,5 @@
 import { Server } from 'socket.io';
-
+import { info } from '../../helpers/logger.js';
 // Simulated user management functions
 const users = new Map(); // key: socketId, value: { name, room }
 
@@ -35,14 +35,14 @@ class SocketEvent {
 
       SocketEvent.io.on('connection', SocketEvent.connectionHandler);
 
-      console.log('🔌  Socket.io initialized');
+      info('🔌  Socket.io initialized');
     }
     return SocketEvent.io;
   }
 
   // Handle new client connections
   static connectionHandler(socket) {
-    console.log(`Client connected: ${socket.id}`);
+    info(`Client connected: ${socket.id}`);
 
     // Example: listen for "join" event from client
     socket.on('join', ({ userName, roomName }, callback) => {
@@ -78,7 +78,7 @@ class SocketEvent {
           text: `${user.name} has left the room`,
         });
       }
-      console.log(`Client disconnected: ${socket.id}`);
+      info(`Client disconnected: ${socket.id}`);
     });
   }
 
@@ -101,7 +101,7 @@ class SocketEvent {
    */
   static emit(event, data) {
     SocketEvent.getIO().emit(event, data);
-    console.log(`📢 Event emitted: ${event}`, data);
+    info(`📢 Event emitted: ${event}`, data);
   }
 
   /**
@@ -112,7 +112,7 @@ class SocketEvent {
    */
   static emitToRoom(room, event, data) {
     SocketEvent.getIO().to(room).emit(event, data);
-    console.log(`📢 Event emitted to room [${room}]: ${event}`, data);
+    info(`📢 Event emitted to room [${room}]: ${event}`, data);
   }
 
   /**
@@ -123,7 +123,7 @@ class SocketEvent {
    */
   static emitToClient(socketId, event, data) {
     SocketEvent.getIO().to(socketId).emit(event, data);
-    console.log(`📢 Event emitted to client [${socketId}]: ${event}`, data);
+    info(`📢 Event emitted to client [${socketId}]: ${event}`, data);
   }
 }
 

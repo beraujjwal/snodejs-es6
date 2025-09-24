@@ -15,7 +15,7 @@ import winston, { LoggerStream } from '../config/winston.config.js';
 import { errorResponse } from './core/helpers/apiResponse.js';
 import limiter from '../config/rateLimit.config.js';
 import router from './route/index.js';
-
+import { info } from '../helpers/logger.js';
 import { startDBListener } from './database/dbListener.js';
 
 import deepTrim from './core/middleware/deepTrimming.js';
@@ -28,7 +28,7 @@ import { APP_PORT, APP_ENV, APP_URL, APP_TIMEZONE } from '../config/config.js';
 const app = express();
 app.use(useragent.express());
 
-console.log('🛠️   Bootstrapping Application');
+info('🛠️   Bootstrapping Application');
 
 let errorCount = 0;
 
@@ -80,15 +80,15 @@ app.use(helmet());
 // Start DB listener in background
 startDBListener();
 
-console.log(`👉  Mode: ${APP_ENV}`);
-console.log(`👉  Port: ${APP_PORT}`);
+info(`👉  Mode: ${APP_ENV}`);
+info(`👉  Port: ${APP_PORT}`);
 
 //don't show the log when it is test
 if (APP_ENV === 'development') {
   app.use(logger('combined', { stream: new LoggerStream() }));
 }
 
-console.log('🧭  Mapping Routes');
+info('🧭  Mapping Routes');
 
 app.get('/', async (req, res) => {
   return res.status(200).send({

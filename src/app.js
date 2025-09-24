@@ -5,6 +5,8 @@ import http from 'http';
 //import cluster from 'cluster';
 import SocketEvent from './system/event/socketEvent.js';
 
+import { info, warn } from './helpers/logger.js';
+
 import app from './system/index.js';
 const PORT = +process.env.APP_PORT || 4000;
 
@@ -29,12 +31,22 @@ const httpServer = http.createServer(app);
 SocketEvent.init(httpServer);
 
 // Memory monitoring
-// setInterval(() => {
-//   const memoryUsage = process.memoryUsage();
-//   console.log(
-//     `Memory Usage: RSS=${memoryUsage.rss}, HeapTotal=${memoryUsage.heapTotal}, HeapUsed=${memoryUsage.heapUsed}, External=${memoryUsage.external}`
-//   );
-// }, 10000);
+setInterval(() => {
+  const memoryUsage = process.memoryUsage();
+  if (toMB(memoryUsage.rss) > 300) {
+    warn(
+      `Memory Usage: RSS=${toMB(memoryUsage.rss)} MB, HeapTotal=${toMB(memoryUsage.heapTotal)} MB, HeapUsed=${toMB(memoryUsage.heapUsed)} MB, External=${toMB(memoryUsage.external)} MB`
+    );
+  } else {
+    info(
+      `Memory Usage: RSS=${toMB(memoryUsage.rss)} MB, HeapTotal=${toMB(memoryUsage.heapTotal)} MB, HeapUsed=${toMB(memoryUsage.heapUsed)} MB, External=${toMB(memoryUsage.external)} MB`
+    );
+  }
+}, 10000);
+
+function toMB(bytes) {
+  return (bytes / 1024 / 1024).toFixed(2);
+}
 
 httpServer
   .listen(PORT)
@@ -44,6 +56,6 @@ httpServer
     process.exit(0);
   })
   .on('listening', () => {
-    console.log('👉  Application Started');
+    info('👉  Application Started');
   });
 //}

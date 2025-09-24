@@ -1,7 +1,9 @@
-const { convert } = require('pdf-poppler');
-const sharp = require('sharp');
-const path = require('path');
-const fs = require('fs');
+'use strict';
+
+import { convert } from 'pdf-poppler';
+import sharp from 'sharp';
+import fs from 'fs';
+import path from 'path';
 
 async function convertPdfToImage(pdfPath) {
   const outputDir = path.dirname(pdfPath);

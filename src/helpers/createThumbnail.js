@@ -42,11 +42,7 @@ export const createThumbnailFromHeicImage = async (
     const inputBase = path.join(tmpDir, inputPath);
     const convertedBase = path.join(tmpDir, convertedPath);
     const outputBase = path.join(tmpDir, outputPath);
-
-    let startTime = process.hrtime();
     const inputBuffer = fs.readFileSync(inputBase);
-    let diff = process.hrtime(startTime);
-    console.log(`Read File Sync time: ${diff[0]}s ${diff[1] / 1e6}ms`);
 
     const outputBuffer = await convert({
       buffer: inputBuffer,
@@ -54,10 +50,7 @@ export const createThumbnailFromHeicImage = async (
       quality: 90,
     });
 
-    startTime = process.hrtime();
     fs.writeFileSync(convertedBase, outputBuffer);
-    diff = process.hrtime(startTime);
-    console.log(`Write File Sync time: ${diff[0]}s ${diff[1] / 1e6}ms`);
 
     await sharp(convertedBase)
       .resize({ width })
@@ -81,7 +74,7 @@ export const createThumbnailFromPdf = async (
     const imageFileBase = path.join(tmpDir, nameWithoutExtension);
     const outputBase = path.join(tmpDir, outputPath);
 
-    // Convert first page to PNG with Poppler
+    // Convert first page to JPG with Poppler
     await execFileAsync('pdftoppm', [
       '-f',
       '1', // start page
@@ -105,5 +98,25 @@ export const createThumbnailFromPdf = async (
   } catch (err) {
     console.error('❌ Error creating thumbnail:', err);
     throw new BaseError(err);
+  }
+};
+
+export const base64ToThumbnail = async (base64String, width = 400) => {
+  try {
+    const buffer = Buffer.from(base64String, 'base64'); // Convert to Buffer
+
+    // Resize image using Sharp
+    const thumbnailBuffer = await sharp(buffer)
+      .resize({ width: width }) // Set thumbnail size
+      .toFormat('jpeg')
+      .toBuffer();
+
+    // Convert back to Base64
+    const base64Thumbnail = `${thumbnailBuffer.toString('base64')}`;
+
+    return base64Thumbnail;
+  } catch (ex) {
+    console.error('Thumbnail Generation Error:', ex);
+    throw ex;
   }
 };

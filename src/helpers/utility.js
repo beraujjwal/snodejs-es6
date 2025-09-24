@@ -1,11 +1,13 @@
 'use strict';
-import 'dotenv/config';
-import { BaseError } from '../system/core/error/baseError.js';
-import otpGenerator from 'otp-generator';
+import fs from 'fs';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
+import otpGenerator from 'otp-generator';
 
+import { BaseError } from '../system/core/error/baseError.js';
 import { authConfig } from '../config/auth.config.js';
+
+export const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const randomNumber = (length) => {
   var text = '';
@@ -65,19 +67,6 @@ export const generateRefreshToken = (userInfo, algorithm = 'HS256') => {
   }
 };
 
-export const getExpiresInTime = () => {
-  const expiresIn = authConfig.expiresIn;
-  const expiresInInt = parseInt(expiresIn);
-  const expiresInString = expiresIn.split(expiresInInt)[1];
-  const expiresInTime = moment()
-    .utc(process.env.APP_TIMEZONE)
-    .add(expiresInInt, expiresInString)
-    .toDate();
-  return expiresInTime.toISOString();
-};
-
-
-
 export const hmsToSecondsOnly = (str = null) => {
   if (!str) {
     return 0;
@@ -86,7 +75,7 @@ export const hmsToSecondsOnly = (str = null) => {
     .split(':')
     .reverse()
     .reduce((prev, curr, i) => prev + curr * Math.pow(60, i), 0);
-}
+};
 
 export const secondsToHms = (seconds) => {
   let secondsNum = Number(seconds);
@@ -98,4 +87,44 @@ export const secondsToHms = (seconds) => {
   let mDisplay = m > 0 ? (m < 10 ? '0' + m + ':' : m + ':') : '00:';
   let sDisplay = s > 0 ? (s < 10 ? '0' + s + ':' : s + ':') : '00';
   return hDisplay + mDisplay + sDisplay;
-}
+};
+
+export const generateRandomNumber = async (length = 3) => {
+  if (length < 1) throw new Error('Length must be at least 1');
+  const min = Math.pow(10, length - 1);
+  const max = Math.pow(10, length) - 1;
+  return Math.floor(min + Math.random() * (max - min + 1));
+};
+
+export const getExpiresInTime = async () => {
+  const expiresIn = process.env.JWT_EXPIRES_IN;
+  const expiresInInt = parseInt(expiresIn);
+  const expiresInString = expiresIn.split(expiresInInt)[1];
+  const expiresInTime = moment()
+    .utc(process.env.APP_TIMEZONE)
+    .add(expiresInInt, expiresInString)
+    .toDate();
+  return expiresInTime.toISOString();
+};
+
+export const splitAtFirstOccurrence = async (str, delimiter) => {
+  const index = str.indexOf(delimiter);
+  if (index === -1) {
+    return [str]; // If the delimiter is not found, return the whole string as a single array element.
+  }
+  return [str.slice(0, index), str.slice(index + delimiter.length)];
+};
+
+export const getFileExtension = async (filename) => {
+  const parts = filename.split('.');
+  return parts.length > 1 ? parts.pop() : ''; // Return the last part or an empty string if no extension
+};
+
+export const deleteIfExistsSync = async (filePath) => {
+  if (fs.existsSync(filePath)) {
+    fs.unlinkSync(filePath);
+    console.log(`${filePath} deleted successfully.`);
+  } else {
+    console.log(`${filePath} does not exist.`);
+  }
+};
