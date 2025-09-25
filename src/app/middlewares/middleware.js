@@ -13,7 +13,6 @@ class Middleware extends BaseMiddleware {
    */
   constructor() {
     super();
-    //autoBind(this);
   }
 }
 

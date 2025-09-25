@@ -62,8 +62,8 @@ Job.init(
     modelName: 'Job',
     tableName: 'gnrl_jobs',
     timestamps: true,
-    paranoid: true,
-    footprint: true,
+    paranoid: false,
+    footprint: false,
     defaultScope: {
       where: {
         status: true,

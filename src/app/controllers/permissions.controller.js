@@ -1,5 +1,4 @@
 'use strict';
-//import autoBind from '../../system/autobind';
 import { BaseError } from '../../system/core/error/baseError.js';
 
 import Controller from './controller.js';
@@ -14,7 +13,6 @@ class PermissionsController extends Controller {
   constructor(service) {
     super(service);
     this.service = service;
-    //autoBind(this);
   }
 }
 

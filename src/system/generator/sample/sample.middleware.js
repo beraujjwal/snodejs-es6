@@ -1,4 +1,3 @@
-const autoBind = require('auto-bind');
 const { middleware } = require('./middleware');
 const { BaseError } = require('@error/baseError');
 
@@ -10,7 +9,6 @@ class MIDDLEWARE_CAMEL_CASE_SINGULAR_FROMMiddleware extends middleware {
    */
   constructor() {
     super();
-    autoBind(this);
   }
 
   /**

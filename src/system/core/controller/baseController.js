@@ -1,5 +1,4 @@
 'use strict';
-//import autoBind from '../../autobind.js';
 import Base from '../base/index.js';
 
 import { BaseError } from '../error/baseError.js';
@@ -15,7 +14,6 @@ class BaseController extends Base {
     super();
     this.service = service;
     this.name = service.name;
-    //autoBind(this);
   }
 
   /**

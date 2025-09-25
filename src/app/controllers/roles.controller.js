@@ -14,7 +14,6 @@ class RolesController extends Controller {
   constructor(service) {
     super(service);
     this.service = service;
-    //autoBind(this);
   }
 }
 

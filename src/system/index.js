@@ -11,12 +11,13 @@ import logger from 'morgan';
 import moment from 'moment-timezone';
 
 import i18n from '../config/i18n.config.js';
-import winston, { LoggerStream } from '../config/winston.config.js';
+import winston, { LoggerStream } from '../helpers/winston.js';
 import { errorResponse } from './core/helpers/apiResponse.js';
 import limiter from '../config/rateLimit.config.js';
 import router from './route/index.js';
-import { info } from '../helpers/logger.js';
+import { info, error } from '../helpers/logger.js';
 import { startDBListener } from './database/dbListener.js';
+import { workerLoop } from '../helpers/queueJobs.js';
 
 import deepTrim from './core/middleware/deepTrimming.js';
 const __dirname = new URL('.', import.meta.url).pathname;
@@ -29,8 +30,6 @@ const app = express();
 app.use(useragent.express());
 
 info('🛠️   Bootstrapping Application');
-
-let errorCount = 0;
 
 const hbs = engine({
   partialsDir: 'resources/views/layouts/partials',
@@ -77,9 +76,6 @@ app.use(i18n);
 //Helmet helps you secure your Express apps by setting various HTTP headers.
 app.use(helmet());
 
-// Start DB listener in background
-startDBListener();
-
 info(`👉  Mode: ${APP_ENV}`);
 info(`👉  Port: ${APP_PORT}`);
 
@@ -112,7 +108,14 @@ app.get('/health', async (req, res) => {
 //Route Prefixes
 app.use('/', router);
 
+// Start DB listener in background
+startDBListener();
+
+// Start queue job
+workerLoop();
+
 //Sentry.setupExpressErrorHandler(app);
+let errorCount = 0;
 app.use(function (err, req, res, next) {
   let showErrorNumber = '';
   const code = err?.code || err?.statusCode;
@@ -124,10 +127,12 @@ app.use(function (err, req, res, next) {
     showErrorNumber = `No.- ${errorCount}`;
   }
 
-  if (APP_ENV !== 'test')
+  if (APP_ENV !== 'test') {
     winston.error(
       `${showErrorNumber} - ${code || 500} - ${errorMessage} - ${req.originalUrl} - ${req.method} - ${req.ip}`
     );
+    error(errorMessage);
+  }
 
   return res.status(code || 500).json(errorResponse(err, code || 500));
 });

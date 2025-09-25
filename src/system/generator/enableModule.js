@@ -13,9 +13,6 @@ export default async function (processAction) {
   if (processAction === 'socket') {
     console.log('Socket module enabling...');
     await installPackage('socket.io');
-    const source = path.join(__dirname, './directory/socket'); // source folder
-    const destination = path.join(CURR_DIR, 'src/socket'); // destination folder
-    copyFilesWithDirectory(source, destination);
 
     const socketImportFilePath = path.join(__dirname, '../../app.js');
 

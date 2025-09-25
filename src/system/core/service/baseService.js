@@ -2,7 +2,7 @@
 import { Sequelize, Op } from 'sequelize';
 import Base from '../base/index.js';
 import { BaseError } from '../error/baseError.js';
-import { error } from '../helpers/console.js';
+import { error } from '../../../helpers/console.js';
 
 class BaseService extends Base {
   static instances = {};
