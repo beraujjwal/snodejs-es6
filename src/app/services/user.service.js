@@ -28,11 +28,6 @@ class User extends Service {
     super(model);
     this.model = this.getModel(model);
     this.name = model;
-    // this.role = this.getModel('Role');
-    // this.permission = this.getModel('Permission');
-    // this.resource = this.getModel('Resource');
-    // this.userDevice = this.getModel('UserDevice');
-    // this.userRole = this.getModel('UserRole');
   }
 
   static getInstance(model) {
@@ -255,18 +250,12 @@ class User extends Service {
         expiresIn: await getExpiresInTime(),
       };
 
-      const filter = { id: user.id };
-      const data = {
-        loginAttempts: 0,
-        blockExpires: moment().utc(this.getEnv('APP_TIMEZONE')).toDate(),
-      };
-
-      await this.model.update(data, { where: filter }, { transaction });
-
-      const userWithLatestData = { ...user, ...data };
-      delete userWithLatestData.password;
+      //const userWithLatestData = { ...user, ...data };
+      delete user.password;
+      delete user.loginAttempts;
+      delete user.blockExpires;
       const loginRes = {
-        user: userWithLatestData,
+        user: user,
         roles,
         token,
         tokenSalt,
@@ -350,149 +339,6 @@ class User extends Service {
     }
   }
 
-  /**
-   * @description Attempt to user activate with the provided object
-   * @param req {object} Object containing all required data to do user activate
-   * @param res {object}
-   * @returns {Promise<{success: boolean, error: *}|{success: boolean, data: *}>}
-   */
-  async activateService(req, res) {
-    var username = req.params.username;
-    var token = req.params.token;
-    let regexEmail = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
-    var criteria = username.match(regexEmail)
-      ? { email: username }
-      : { phone: username };
-
-    try {
-      var user = await this.User.findOne({
-        where: criteria,
-      });
-
-      if (user == null) {
-        throw new Error(`User not found.`);
-      }
-
-      if (user.verified) {
-        throw new Error(`User already verified.`);
-      }
-
-      var foundToken = await this.VerificationToken.findOne({
-        where: { token: token, type: 'signup', status: true },
-      });
-
-      if (foundToken == null) {
-        throw new Error(`Verification token not found.`);
-      }
-
-      await user.update({ verified: true }).catch((ex) => {
-        throw new Error(ex);
-      });
-
-      await foundToken.update({ status: false }).catch((ex) => {
-        throw new Error(ex);
-      });
-
-      //`User with ${inputDetails.field} ${inputDetails.value} has been verified`
-
-      var activateRes = {
-        status: true,
-        message: `Your Account has been activated successfully.`,
-      };
-      return activateRes;
-    } catch (ex) {
-      throw new Error(ex);
-    }
-  }
-
-  async resetPasswordService(req, res) {
-    const username = req.body.username;
-    let regexEmail = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
-    var criteria = username.match(regexEmail)
-      ? { email: username }
-      : { phone: username };
-    try {
-      var user = await this.User.findOne({
-        where: criteria, //checking if the email address or phone sent by client is present in the db(valid)
-      });
-
-      if (user == null) {
-        throw new Error(`User not found.`);
-      }
-
-      var verificationToken = await this.VerificationToken.findOne({
-        where: { user_id: user.id, type: 'reset_password' },
-      });
-
-      if (verificationToken != null) {
-        this.VerificationToken.destroy({
-          where: {
-            id: verificationToken.id,
-          },
-        });
-      }
-
-      var token = this.crypto.randomBytes(64).toString('hex'); //creating the token to be sent to the forgot password form (react)
-      bcrypt.hash(token, null, null, function (err, hash) {
-        //hashing the password to store in the db node.js
-        var dt = new Date();
-        dt.setSeconds(
-          dt.getSeconds() +
-            parseInt(this.getEnv('RESET_PASSWORD_TOKEN_EXPIRES_IN'))
-        );
-        this.VerificationToken.create({
-          user_id: user.id,
-          token: hash,
-          type: 'reset_password',
-          status: true,
-          expire_at: dt,
-        }).then(function (item) {
-          if (!item)
-            return throwFailed(
-              res,
-              'Oops problem in creating new password record'
-            );
-          let mailOptions = {
-            to: user.email,
-            subject: 'Reset your account password',
-            html:
-              '<h4><b>Reset Password</b></h4>' +
-              '<p>To reset your password, complete this form:</p>' +
-              '<a href=' +
-              config.clientUrl +
-              'reset/' +
-              user.id +
-              '/' +
-              token +
-              '">' +
-              config.clientUrl +
-              'reset/' +
-              user.id +
-              '/' +
-              token +
-              '</a>' +
-              '<br><br>' +
-              '<p>--Team</p>',
-          };
-
-          this.mailer.send(mailOptions);
-
-          let mailSent = sendMail(mailOptions); //sending mail to the user where he can reset password.User id and the token generated are sent as params in a link
-          if (mailSent) {
-            return res.json({
-              success: true,
-              message: 'Check your mail to reset your password.',
-            });
-          } else {
-            return throwFailed(error, 'Unable to send email.');
-          }
-        });
-      });
-    } catch (ex) {
-      throw new Error(ex);
-    }
-  }
-
   async generateTokenFromRefreshToken({ token }, { transaction }) {
     try {
       // Verify the refresh token first
@@ -537,183 +383,9 @@ class User extends Service {
         accessToken: encrypt(accessToken),
         refreshToken: encrypt(refreshToken),
         expiresIn: await getExpiresInTime(),
-        currentDateTime: moment().utc(this.getEnv('APP_TIMEZONE')).toDate(),
       };
     } catch (err) {
       throw new BaseError('Invalid or expired refresh token.', 401);
-    }
-  }
-
-  async usersListService(req, res) {
-    // Save User to Database
-    var lang = getLocale();
-
-    try {
-      var name = 'first_name';
-      var order = 'id';
-      var ordering = 'ASC';
-      var queries = req.query;
-      var offset = 0;
-      var limit = 100;
-      const query = [];
-      const innerQuery = [];
-
-      if (req.query.limit) {
-        limit = req.query.limit;
-      }
-
-      if (req.query.page) {
-        if (req.query.page > 1) {
-          offset = req.query.page * limit - limit;
-        }
-      }
-
-      if (req.query.orderby) {
-        order = req.query.orderby;
-      }
-
-      if (req.query.ordering) {
-        ordering = req.query.ordering;
-      }
-
-      if (req.query.keyword) {
-        innerQuery.push({
-          first_name: {
-            [this.Op.iLike]: `%${req.query.keyword}%`,
-          },
-        });
-
-        innerQuery.push({
-          last_name: {
-            [this.Op.iLike]: `%${req.query.keyword}%`,
-          },
-        });
-      }
-
-      if (req.query.keyword) {
-        query.push({
-          phone: {
-            [this.Op.iLike]: `%${req.query.keyword}%`,
-          },
-        });
-      }
-
-      if (req.query.keyword) {
-        query.push({
-          email: {
-            [this.Op.iLike]: `%${req.query.keyword}%`,
-          },
-        });
-      }
-
-      return await this.User.findAll({
-        where: {
-          [this.Op.and]: query,
-        },
-        include: [
-          {
-            model: this.Role,
-            as: 'roles',
-            required: false,
-          },
-        ],
-        order: [[order, ordering]],
-        offset: offset,
-        limit: limit,
-      });
-    } catch (ex) {
-      throw new Error(ex);
-    }
-  }
-
-  async usersDetailsService(criteria, transaction) {
-    try {
-      var lang = getLocale();
-      return await this.User.findOne({
-        where: {
-          id: req.params.id,
-        },
-      });
-    } catch (ex) {
-      throw new Error(ex);
-    }
-  }
-
-  async userUpdate(req, res) {
-    var lang = getLocale();
-
-    try {
-      // Then, we do some calls passing this transaction as an option:
-
-      const [numberOfAffectedRows, affectedRows] = await this.User.update(
-        {
-          phone: req.body.phone,
-          email: req.body.email,
-        },
-        {
-          where: { id: req.params.id },
-          returning: true, // needed for affectedRows to be populated
-          plain: true, // makes sure that the returned instances are just plain objects
-        }
-      );
-      var namesData = req.body.name;
-      for (let index of Object.keys(namesData)) {
-        var userTranslation = await this.UserTranslation.findOne({
-          where: { user_id: req.params.id, lang: index },
-        });
-        if (userTranslation.id) {
-          await this.UserTranslation.update(
-            { name: namesData[index], updated_at: new Date() },
-            {
-              returning: true,
-              plain: true,
-              where: { user_id: req.params.id, lang: index },
-            }
-          );
-        } else
-          await this.UserTranslation.create({
-            name: namesData[index],
-            lang: index,
-            user_id: req.params.id,
-            status: true,
-            created_at: new Date(),
-            updated_at: new Date(),
-          });
-      }
-
-      return true;
-    } catch (ex) {
-      throw new Error(ex);
-    }
-  }
-
-  async userStore(req, res) {
-    try {
-      // Then, we do some calls passing this transaction as an option:
-
-      const user = await this.User.create({
-        phone: req.body.phone,
-        email: req.body.email,
-        password: bcrypt.hashSync(req.body.password, 8),
-        status: true,
-        created_at: new Date(),
-        updated_at: new Date(),
-      });
-      var namesData = req.body.name;
-      for (let index of Object.keys(namesData)) {
-        await this.UserTranslation.create({
-          name: namesData[index],
-          lang: index,
-          user_id: user.id,
-          status: true,
-          created_at: new Date(),
-          updated_at: new Date(),
-        });
-      }
-
-      return true;
-    } catch (ex) {
-      throw new Error(ex);
     }
   }
 
@@ -893,8 +565,8 @@ class User extends Service {
 
   async logout({ user, deviceInfo }, { transaction }) {
     try {
-      const result = await this.userDevice.update(
-        { status: false },
+      await this.userDevice.update(
+        { status: false, deviceSalt: null },
         {
           where: {
             userID: user.id,

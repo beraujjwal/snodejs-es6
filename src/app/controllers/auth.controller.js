@@ -6,8 +6,11 @@ import User from '../services/user.service.js';
 import UserDevice from '../services/userDevice.service.js';
 import Token from '../services/token.service.js';
 
-import { registrationVerificationEmail } from '../../libraries/email.library.js';
-import { encrypt, decrypt } from '../../helpers/encodeDecode.js';
+import Event from '../../events/index.js';
+const eventBus = Event.getInstance();
+
+//import { registrationVerificationEmail } from '../../libraries/email.library.js';
+import { decrypt } from '../../helpers/encodeDecode.js';
 
 // import {
 //   keyExists,
@@ -191,6 +194,8 @@ class AuthController extends Controller {
       message = 'Login token generated successfully!';
     }
     result.user.userDevice = latestUserDevice;
+
+    eventBus.emit('user.login', result.user);
 
     //const userRedisKey = `user-${result.user.id}`;
     //setValue(userRedisKey, result.user, this.getEnv('JWT_EXPIRES_IN'));

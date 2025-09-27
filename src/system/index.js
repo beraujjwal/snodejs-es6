@@ -112,7 +112,7 @@ app.use('/', router);
 startDBListener();
 
 // Start queue job
-workerLoop();
+//workerLoop();
 
 //Sentry.setupExpressErrorHandler(app);
 let errorCount = 0;

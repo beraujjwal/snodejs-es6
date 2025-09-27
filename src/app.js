@@ -4,7 +4,7 @@ import http from 'http';
 // import os from 'os';
 //import cluster from 'cluster';
 import SocketEvent from './system/event/socketEvent.js';
-
+import loadEvents from './system/event/events.js';
 import { info, warn } from './helpers/logger.js';
 
 import app from './system/index.js';
@@ -26,6 +26,7 @@ const PORT = +process.env.APP_PORT || 4000;
 //   });
 // } else {
 //   console.log(`Worker ${process.pid} is running`);
+await loadEvents();
 const httpServer = http.createServer(app);
 
 SocketEvent.init(httpServer);

@@ -15,9 +15,24 @@ class DeepTrimmingMiddleware extends Base {
     try {
       const trimStringValues = (obj) => {
         if (typeof obj !== 'object' || obj === null) return obj;
+
+        if (Array.isArray(obj)) {
+          return obj.map((item) => trimStringValues(item));
+        }
+
         for (const [key, value] of Object.entries(obj)) {
           if (typeof value === 'string') {
-            obj[key] = value.trim();
+            obj[key] = value
+              .replace(/<[^>]*>?/gm, '') // strip HTML
+              .replace(/&/g, '&amp;')
+              .replace(/</g, '&lt;')
+              .replace(/>/g, '&gt;')
+              .replace(/'/g, '&#39;')
+              .replace(/"/g, '&quot;')
+              .replace(/`/g, '&#96;')
+              .replace(/;/g, '&#59;')
+              .replace(/%/g, '&#37;')
+              .trim();
           } else if (typeof value === 'object') {
             trimStringValues(value); // Recursively trim nested objects
           }
