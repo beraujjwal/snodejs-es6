@@ -1,26 +1,23 @@
 'use strict';
 import { Sequelize, Op } from 'sequelize';
-import {
-  BaseError,
-  ValidationError,
-} from '../../system/core/error/baseError.js';
+import { BaseError } from '../../system/core/error/baseError.js';
 import Service from './service.js';
 
 import Resource from './resource.service.js';
 
 class Role extends Service {
   /**
-   * role service constructor
+   * @description Role service constructor
    * @author Ujjwal Bera
-   * @param model
+   * @param { string }: model
+   * @returns { object } : Role service object
+   * @throws null
    */
   constructor(model) {
     super(model);
     this.model = this.getModel(model);
+    this.modelInstances[model] = this.model;
     this.name = model;
-    // this.resource = this.getModel('Resource');
-    // this.userRole = this.getModel('UserRole');
-    // this.permission = this.getModel('Permission');
   }
 
   static getInstance(model) {
@@ -30,344 +27,53 @@ class Role extends Service {
     return this.instances[model];
   }
 
-  get resource() {
-    if (!this.instances['Resource']) {
-      this.instances['Resource'] = this.getModel('Resource');
+  get roleResourcePermission() {
+    if (!this.modelInstances['RoleResourcePermission']) {
+      this.modelInstances['RoleResourcePermission'] = this.getModel('RoleResourcePermission');
     }
-    return this.instances['Resource'];
+    return this.modelInstances['RoleResourcePermission'];
   }
 
-  get userRole() {
-    if (!this.instances['UserRole']) {
-      this.instances['UserRole'] = this.getModel('UserRole');
+  async deleteRolePermission({ roleId, permissionId }, { transaction }) {
+    const filter = {
+      roleID: roleId,
+      permissionID: permissionId,
+    };
+    const result = await this.roleResourcePermission.destroy({
+      where: filter,
+      transaction,
+    });
+    if (result) {
+      return {
+        code: 200,
+        message: 'Role permission deleted successfully.',
+      };
     }
-    return this.instances['UserRole'];
+    return {
+      code: 400,
+      message: 'Role permission not found.',
+    };
   }
 
-  get permission() {
-    if (!this.instances['Permission']) {
-      this.instances['Permission'] = this.getModel('Permission');
+  async deleteRoleResource({ roleId, resourceId }, { transaction }) {
+    const filter = {
+      roleID: roleId,
+      resourceID: resourceId,
+    };
+    const result = await this.roleResourcePermission.destroy({
+      where: filter,
+      transaction,
+    });
+    if (result) {
+      return {
+        code: 200,
+        message: 'Role resource deleted successfully.',
+      };
     }
-    return this.instances['Permission'];
-  }
-
-  get resourceService() {
-    if (!this._resourceService) {
-      this._resourceService = Resource.getInstance('Resource');
-    }
-    return this._resourceService;
-  }
-
-  async findAllRoles({ query }, { transaction }) {
-    try {
-      let { order_by, ordering, limit, page, ...search } = query;
-      let filter = {};
-      if (search.name != null && search.name.length > 0) {
-        filter = { ...filter, name: { [Op.like]: `%${search.name}%` } };
-      }
-
-      if (order_by === 'parent') {
-        query.order_by = 'parentID';
-        query.order_by_can_be_null = true;
-      }
-      query.ordering = ordering;
-      query.limit = limit;
-      query.page = page;
-      if (query.parent != null && query.parent.length > 0) {
-        filter = { ...filter, parentID: Number(query.parent) };
-        query.parentID = Number(query.parent);
-        delete query.parent;
-      }
-
-      if (query.resource && query.resource.length > 0) {
-        let subCondition = '';
-        if (query.permissions && query.permissions.length > 0) {
-          const permissions = query.permissions;
-          subCondition = `AND "permissionID" IN (${permissions.split(',')})`;
-        }
-        filter = {
-          ...filter,
-          id: {
-            [Op.in]: Sequelize.literal(
-              `(SELECT DISTINCT "roleID" FROM role_resource_permissions WHERE "resourceID" = ${query.resource} ${subCondition} AND status = true AND "deletedAt" IS NULL)`
-            ),
-          },
-        };
-      }
-
-      const response = await this.findAll(query, { filter, transaction });
-
-      return response;
-    } catch (ex) {
-      throw new BaseError(ex);
-    }
-  }
-
-  async roleStore(
-    { parent, name, description, resources, status },
-    { transaction }
-  ) {
-    try {
-      const role = await this.createOne(
-        {
-          name,
-          parentID: parent,
-          description,
-          status,
-        },
-        { transaction }
-      );
-
-      const roleID = role.id; // Get inserted role ID
-
-      // Step 2: Prepare Resources and Permissions
-      for (const resource of resources) {
-        const resourceInstance = await this.resourceService.findByPk(
-          resource.id,
-          {
-            transaction,
-          }
-        );
-
-        if (!resourceInstance) {
-          throw new Error(`Resource with ID ${resource.id} not found`);
-        }
-
-        // Insert role-resource-permission mapping using custom method
-        await this.setRoleResourcePermissions(
-          roleID,
-          resource.id,
-          resource.permissions,
-          { transaction }
-        );
-      }
-
-      return role;
-    } catch (ex) {
-      throw new BaseError(
-        ex.message || `Error fetching ${this.name} details.`,
-        ex.statusCode || ex.code || 400
-      );
-    }
-  }
-
-  async findOneRole(roleId, { transaction }) {
-    try {
-      const include = [
-        {
-          model: this.model,
-          as: 'parent',
-          attributes: ['id', 'name', 'slug', 'status'],
-        },
-        {
-          model: this.resource,
-          as: 'resources',
-          attributes: ['id', 'parentID', 'name', 'slug', 'status'],
-          through: {
-            attributes: [],
-          },
-          include: [
-            {
-              model: this.permission,
-              as: 'resourceRolePermissions',
-              attributes: ['id', 'name', 'slug', 'status'],
-              through: {
-                attributes: [],
-                where: { roleID: roleId },
-              },
-            },
-          ],
-        },
-      ];
-      const role = await this.findByPk(roleId, {
-        include,
-        transaction,
-      });
-      if (!role) throw new BaseError('You have selected an invalid role.');
-      return role;
-    } catch (ex) {
-      throw new BaseError(
-        ex.message || 'An error occurred while fetching a role details.',
-        ex.status
-      );
-    }
-  }
-
-  async roleUpdate(
-    roleId,
-    { parent, name, description, resources, status },
-    { transaction }
-  ) {
-    try {
-      let role = await this.findByPk(roleId, { transaction });
-      if (!role) throw new BaseError('You have selected an invalid role.');
-
-      let data = {};
-
-      if (name != null) data.name = name;
-      if (parent != null) data.parentID = parent;
-      if (status != null) data.status = status;
-      if (description != null) data.description = description;
-
-      const roleUpdate = await this.updateByPk(roleId, data, { transaction });
-
-      for (const resource of resources) {
-        const resourceInstance = await this.resourceService.findByPk(
-          resource.id,
-          {
-            transaction,
-          }
-        );
-
-        if (!resourceInstance) {
-          throw new Error(`Resource with ID ${resource.id} not found`);
-        }
-
-        // Insert role-resource-permission mapping using custom method
-        await this.setRoleResourcePermissions(
-          roleId,
-          resource.id,
-          resource.permissions,
-          { transaction }
-        );
-      }
-
-      return roleUpdate;
-    } catch (ex) {
-      throw new BaseError(ex.message, ex.status || 500);
-    }
-  }
-
-  /**
-   * @author Ujjwal Bera
-   *
-   * @param {*} roleId
-   * @returns
-   */
-  async roleCanDelete(roleId) {
-    try {
-      let role = await this.model.findOne({
-        parent: roleId,
-        deleted: false,
-      });
-      if (!role) {
-        throw new BaseError('Role not found.');
-      }
-
-      await role.delete();
-
-      return await this.model.findOne({
-        _id: roleId,
-        deleted: true,
-      });
-    } catch (ex) {
-      throw new BaseError(ex);
-    }
-  }
-
-  /**
-   * @author Ujjwal Bera
-   *
-   * @param {*} roleId
-   * @returns
-   */
-  async roleDelete(roleId) {
-    try {
-      const role = await this.model.findOne({
-        _id: roleId,
-        deleted: false,
-      });
-      if (!role) {
-        throw new BaseError('Role not found.');
-      }
-
-      //If role have child roles then don't allow delete operation
-      const childs = await this.model.find({ parent: roleId, deleted: false });
-      if (childs.length > 0)
-        throw new BaseError(
-          'Some child role belongs to this role. If you still want to delete the role? Then delete those child role belongs to this role or shift them into a different role or make them parent role.',
-          401
-        );
-
-      //If role have users then don't allow delete operation
-      const users = await this.db['User'].find({ roles: { $all: [roleId] } });
-      if (users.length > 0)
-        throw new BaseError(
-          'Some user belongs to this role. If you still want to delete the role? Then delete those user belongs to this role or shift them into a different role.',
-          401
-        );
-
-      await role.delete();
-      return await this.model.findOne({
-        _id: roleId,
-        deleted: true,
-      });
-    } catch (ex) {
-      throw new BaseError(ex);
-    }
-  }
-
-  async createUserRole({ userId, roles }, { transaction }) {
-    try {
-      const userRoles = await Promise.all(
-        roles.map(async (role) => {
-          const roleDetails = await this.model.findOne({
-            where: { slug: role },
-            transaction,
-          });
-
-          if (!roleDetails) throw new BaseError(`Role '${role}' not found.`);
-
-          return {
-            userID: userId,
-            roleID: roleDetails.id,
-          };
-        })
-      );
-
-      // Bulk insert user roles inside the transaction
-      await this.userRole.bulkCreate(userRoles, { transaction });
-    } catch (ex) {
-      throw new BaseError(ex.message);
-    }
-  }
-
-  /**
-   * Custom method to set role resource permissions
-   * @param {number} roleId
-   * @param {number} resourceId
-   * @param {Array} permissions
-   * @param {Object} options
-   */
-  async setRoleResourcePermissions(
-    roleId,
-    resourceId,
-    permissions,
-    { transaction }
-  ) {
-    try {
-      // Assuming you have a RoleResourcePermission model
-      const RoleResourcePermission = this.getModel('RoleResourcePermission');
-
-      // Delete existing permissions for the role and resource
-      await RoleResourcePermission.destroy({
-        where: { roleID: roleId, resourceID: resourceId },
-        transaction,
-      });
-
-      // Insert new permissions
-      const permissionRecords = permissions.map((permission) => ({
-        roleID: roleId,
-        resourceID: resourceId,
-        permissionID: permission,
-      }));
-
-      await RoleResourcePermission.bulkCreate(permissionRecords, {
-        transaction,
-      });
-    } catch (ex) {
-      throw new BaseError(ex);
-    }
+    return {
+      code: 400,
+      message: 'Role resource not found.',
+    };
   }
 }
 

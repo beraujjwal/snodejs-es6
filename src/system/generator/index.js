@@ -2,22 +2,14 @@
 const CURR_DIR = process.cwd();
 import { URL } from 'url';
 import chalk from 'chalk';
-import {
-  camelCase,
-  pascalCase,
-  constantCase,
-  snakeCase,
-  capitalCase,
-  dotCase,
-  pathCase,
-  sentenceCase,
-  noCase,
-} from 'change-case';
+import { camelCase, pascalCase, constantCase, snakeCase } from 'change-case';
 import pluralize from 'pluralize';
 import fs from 'fs';
 const __dirname = new URL('.', import.meta.url).pathname;
 
 const templatePath = `${__dirname}/sample`;
+
+import { info, error } from '../../helpers/logger.js';
 
 export default async function (moduleArg) {
   try {
@@ -34,44 +26,43 @@ export default async function (moduleArg) {
       fileSet = new Set(['C', 'M', 'R', 'S', 'V']);
     }
 
+    let file = null,
+      destPath = null,
+      contents = null;
     if (processAction != 'module') {
       switch (processAction) {
         case 'controller':
           if (fileSet) fileSet.delete('C');
-          var { file, destPath, contents } =
-            await createController(processName);
+          ({ file, destPath, contents } = await createController(processName));
           break;
         case 'model':
           if (fileSet) fileSet.delete('M');
-          var { file, destPath, contents } = await createModel(processName);
+          ({ file, destPath, contents } = await createModel(processName));
           break;
         case 'service':
           if (fileSet) fileSet.delete('S');
-          var { file, destPath, contents } = await createService(processName);
+          ({ file, destPath, contents } = await createService(processName));
           break;
         case 'validation':
           if (fileSet) fileSet.delete('V');
-          var { file, destPath, contents } =
-            await createValidation(processName);
+          ({ file, destPath, contents } = await createValidation(processName));
           break;
         case 'middleware':
-          var { file, destPath, contents } =
-            await createMiddleware(processName);
+          ({ file, destPath, contents } = await createMiddleware(processName));
           break;
         case 'route':
           if (fileSet) fileSet.delete('R');
-          var { file, destPath, contents } = await createRoute(processName);
+          ({ file, destPath, contents } = await createRoute(processName));
           break;
         case 'testCase':
           if (fileSet) fileSet.delete('T');
-          var { file, destPath, contents } = await createTestCase(processName);
+          ({ file, destPath, contents } = await createTestCase(processName));
           break;
         case 'migration':
-          console.log('processName', processName);
-          var { file, destPath, contents } = await createMigration(processName);
+          ({ file, destPath, contents } = await createMigration(processName));
           break;
         case 'seeder':
-          var { file, destPath, contents } = await createSeeder(processName);
+          ({ file, destPath, contents } = await createSeeder(processName));
           break;
         default:
           break;
@@ -82,26 +73,22 @@ export default async function (moduleArg) {
         for (let set of fileSet) {
           switch (set) {
             case 'C':
-              var { file, destPath, contents } =
-                await createController(processName);
+              ({ file, destPath, contents } = await createController(processName));
               break;
             case 'M':
-              var { file, destPath, contents } = await createModel(processName);
+              ({ file, destPath, contents } = await createModel(processName));
               break;
             case 'S':
-              var { file, destPath, contents } =
-                await createService(processName);
+              ({ file, destPath, contents } = await createService(processName));
               break;
             case 'V':
-              var { file, destPath, contents } =
-                await createValidation(processName);
+              ({ file, destPath, contents } = await createValidation(processName));
               break;
             case 'R':
-              var { file, destPath, contents } = await createRoute(processName);
+              ({ file, destPath, contents } = await createRoute(processName));
               break;
             case 'T':
-              var { file, destPath, contents } =
-                await createTestCase(processName);
+              ({ file, destPath, contents } = await createTestCase(processName));
               break;
             default:
               break;
@@ -112,9 +99,9 @@ export default async function (moduleArg) {
     }
   } catch (error) {
     if (error.code === 'EEXIST') {
-      console.error(chalk.redBright('Module already exists.'));
+      error(chalk.redBright('Module already exists.'));
     } else {
-      console.error(chalk.redBright(error.message));
+      error(chalk.redBright(error.message));
     }
   }
 }
@@ -122,18 +109,6 @@ export default async function (moduleArg) {
 //For plural form with undes score
 const transformToPluralSnakeCase = (input) => {
   return pluralize(snakeCase(input));
-};
-
-const transformToPluralCamelCase = (input) => {
-  return camelCase(pluralize(input));
-};
-
-const transformToPluralPascalCase = (input) => {
-  return pascalCase(pluralize(input));
-};
-
-const transformToPluralPascalUnderscoreCase = (input) => {
-  return capitalCase(pluralize(input), { delimiter: '_' });
 };
 
 async function transformSingularCamelCase(processName) {
@@ -154,11 +129,6 @@ async function transformSingularPascalCase(processName) {
 async function transformSingularConstant(processName) {
   let singularProcessName = pluralize.singular(processName);
   return constantCase(singularProcessName);
-}
-
-async function transformPluralConstant(processName) {
-  let pluralProcessName = pluralize.plural(processName);
-  return constantCase(pluralProcessName);
 }
 
 //New Optimize function
@@ -189,8 +159,7 @@ const toCamelSingular = (input) => {
 
 async function createController(processName) {
   let origFilePath = `${templatePath}/samples.controller.js`;
-  let singularProcessNameUpperCase =
-    await transformSingularConstant(processName);
+  let singularProcessNameUpperCase = await transformSingularConstant(processName);
 
   const controllerFileName = `${toCamelPlural(processName)}`;
   const controllerName = toPascalPlural(processName);
@@ -198,21 +167,12 @@ async function createController(processName) {
   const serviceName = toPascalSingular(processName);
 
   const file = `${controllerFileName}.controller.js`;
-  console.log(chalk.blueBright(`Creating Controller: ${file}`));
+  info(chalk.blueBright(`Creating Controller: ${file}`));
   let contents = fs.readFileSync(origFilePath, 'utf8');
-  contents = contents.replace(
-    /CONTROLLER_CAMEL_CASE_PLURAL_FORM/g,
-    controllerName
-  );
-  contents = contents.replace(
-    /CONTROLLER_CAMEL_CASE_SINGULAR/g,
-    serviceFileName
-  );
+  contents = contents.replace(/CONTROLLER_CAMEL_CASE_PLURAL_FORM/g, controllerName);
+  contents = contents.replace(/CONTROLLER_CAMEL_CASE_SINGULAR/g, serviceFileName);
   contents = contents.replace(/MODEL_SINGULAR_FORM/g, serviceName);
-  contents = contents.replace(
-    /SINGULAR_PROCESS_NAME_UPPERCASE/g,
-    singularProcessNameUpperCase
-  );
+  contents = contents.replace(/SINGULAR_PROCESS_NAME_UPPERCASE/g, singularProcessNameUpperCase);
 
   let destPath = `${CURR_DIR}/src/app/controllers`;
   return { file, destPath, contents };
@@ -220,22 +180,15 @@ async function createController(processName) {
 
 async function createModel(processName) {
   let origFilePath = `${templatePath}/sample.model.js`;
-  let pascalSingularProcessName =
-    await transformSingularPascalCase(processName);
+  let pascalSingularProcessName = await transformSingularPascalCase(processName);
   let camelSingularProcessName = await transformSingularCamelCase(processName);
   const snakeSingularProcessName = transformToPluralSnakeCase(processName);
 
   let file = `${camelSingularProcessName}.model.js`;
-  console.log(chalk.blueBright(`Creating Model: ${file}`));
+  info(chalk.blueBright(`Creating Model: ${file}`));
   let contents = fs.readFileSync(origFilePath, 'utf8');
-  contents = contents.replace(
-    /MODEL_SINGULAR_FORM/g,
-    pascalSingularProcessName
-  );
-  contents = contents.replace(
-    /TABLE_NAME_PLURAL_FORM/g,
-    snakeSingularProcessName
-  );
+  contents = contents.replace(/MODEL_SINGULAR_FORM/g, pascalSingularProcessName);
+  contents = contents.replace(/TABLE_NAME_PLURAL_FORM/g, snakeSingularProcessName);
   let destPath = `${CURR_DIR}/src/models`;
   return { file, destPath, contents };
 }
@@ -246,7 +199,7 @@ async function createService(processName) {
   const serviceFileName = `${toCamelSingular(processName)}`;
 
   let file = `${serviceFileName}.service.js`;
-  console.log(chalk.blueBright(`Creating Service: ${file}`));
+  info(chalk.blueBright(`Creating Service: ${file}`));
   let contents = fs.readFileSync(origFilePath, 'utf8');
   contents = contents.replace(/SERVICE_SINGULAR_FORM/g, serviceName);
   let destPath = `${CURR_DIR}/src/app/services`;
@@ -260,12 +213,9 @@ async function createValidation(processName) {
   const validationName = toPascalSingular(processName);
 
   let file = `${camelSingularProcessName}.validation.js`;
-  console.log(chalk.blueBright(`Creating Validation: ${file}`));
+  info(chalk.blueBright(`Creating Validation: ${file}`));
   let contents = fs.readFileSync(origFilePath, 'utf8');
-  contents = contents.replace(
-    /VALIDATION_CAMEL_CASE_SINGULAR_FROM/g,
-    `${validationName}`
-  );
+  contents = contents.replace(/VALIDATION_CAMEL_CASE_SINGULAR_FROM/g, `${validationName}`);
   let destPath = `${CURR_DIR}/src/app/validations`;
   return { file, destPath, contents };
 }
@@ -275,7 +225,7 @@ async function createMiddleware(processName) {
   let camelSingularProcessName = transformSingularCamelCase(processName);
 
   let file = `${camelSingularProcessName}.middleware.js`;
-  console.log(chalk.blueBright(`Creating Middleware: ${file}`));
+  info(chalk.blueBright(`Creating Middleware: ${file}`));
   let contents = fs.readFileSync(origFilePath, 'utf8');
   contents = contents.replace(
     /MIDDLEWARE_CAMEL_CASE_SINGULAR_FROM/g,
@@ -297,23 +247,14 @@ async function createRoute(processName) {
   let camelSingularProcessName = await transformSingularCamelCase(processName);
 
   let file = `${camelPluralProcessName}.js`;
-  console.log(chalk.blueBright(`Creating Route: ${file}`));
+  info(chalk.blueBright(`Creating Route: ${file}`));
   let contents = fs.readFileSync(origFilePath, 'utf8');
 
-  contents = contents.replace(
-    /SINGULAR_SAMLL_CASE/g,
-    `${paramSingularProcessName}`
-  );
+  contents = contents.replace(/SINGULAR_SAMLL_CASE/g, `${paramSingularProcessName}`);
 
-  contents = contents.replace(
-    /PLURAL_SAMLL_CASE/g,
-    `${paramPluralProcessName}`
-  );
+  contents = contents.replace(/PLURAL_SAMLL_CASE/g, `${paramPluralProcessName}`);
 
-  contents = contents.replace(
-    /CONTROLLER_CAMEL_CASE_PLURAL_FORM/g,
-    `${camelPluralProcessName}`
-  );
+  contents = contents.replace(/CONTROLLER_CAMEL_CASE_PLURAL_FORM/g, `${camelPluralProcessName}`);
 
   contents = contents.replace(
     /VALIDATION_CAMEL_CASE_SINGULAR_FROM/g,
@@ -330,30 +271,20 @@ async function createTestCase(processName) {
   let paramSingularProcessName = pluralize.singular(paramCase);
   let paramPluralProcessName = pluralize.plural(paramCase);
 
-  let pascalSingularProcessName =
-    await transformSingularPascalCase(processName);
+  let pascalSingularProcessName = await transformSingularPascalCase(processName);
 
   const d = new Date();
   let time = d.getTime();
 
   let file = `${time}.${pascalSingularProcessName}.js`;
-  console.log(chalk.blueBright(`Creating Test Case: ${file}`));
+  info(chalk.blueBright(`Creating Test Case: ${file}`));
   let contents = fs.readFileSync(origFilePath, 'utf8');
 
-  contents = contents.replace(
-    /SINGULAR_SAMLL_CASE/g,
-    `${paramSingularProcessName}`
-  );
+  contents = contents.replace(/SINGULAR_SAMLL_CASE/g, `${paramSingularProcessName}`);
 
-  contents = contents.replace(
-    /PLURAL_SAMLL_CASE/g,
-    `${paramPluralProcessName}`
-  );
+  contents = contents.replace(/PLURAL_SAMLL_CASE/g, `${paramPluralProcessName}`);
 
-  contents = contents.replace(
-    /MODEL_SINGULAR_FORM/g,
-    `${pascalSingularProcessName}`
-  );
+  contents = contents.replace(/MODEL_SINGULAR_FORM/g, `${pascalSingularProcessName}`);
 
   let destPath = `${CURR_DIR}/src/test`;
   return { file, destPath, contents };
@@ -365,59 +296,41 @@ async function createMigration(processName) {
     const snakeSingularProcessName = transformToPluralSnakeCase(processName);
     const fileNamePrifix = formatDateToCustomString();
     const file = `${fileNamePrifix}-create-table-${snakeSingularProcessName}.js`;
-    console.log(chalk.blueBright(`Creating Migration: ${file}`));
+    info(chalk.blueBright(`Creating Migration: ${file}`));
     let contents = fs.readFileSync(origFilePath, 'utf8');
 
-    contents = contents.replace(
-      /TABLE_NAME_PLURAL_FORM/g,
-      snakeSingularProcessName
-    );
+    contents = contents.replace(/TABLE_NAME_PLURAL_FORM/g, snakeSingularProcessName);
 
     const destPath = `${CURR_DIR}/src/database/migrations`;
     return { file, destPath, contents };
   } catch (error) {
-    console.error(
-      chalk.redBright(`Error creating migration: ${error.message}`)
-    );
+    error(chalk.redBright(`Error creating migration: ${error.message}`));
     process.exit(1);
   }
 }
 
 async function createSeeder(processName) {
-  console.log('Create seeding...');
+  info('Create seeding...');
   let origFilePath = `${templatePath}/sample.seeder.js`;
   let paramSingularProcessName = pluralize.singular(processName);
   let paramPluralProcessName = pluralize.plural(processName);
   const snakeSingularProcessName = transformToPluralSnakeCase(processName);
 
-  let pascalSingularProcessName =
-    await transformSingularPascalCase(processName);
+  let pascalSingularProcessName = await transformSingularPascalCase(processName);
 
   const fileNamePrifix = formatDateToCustomString();
 
   let file = `${fileNamePrifix}-create-${paramPluralProcessName}.js`;
-  console.log(chalk.blueBright(`Creating Test Case: ${file}`));
+  info(chalk.blueBright(`Creating Test Case: ${file}`));
   let contents = fs.readFileSync(origFilePath, 'utf8');
 
-  contents = contents.replace(
-    /TABLE_NAME_PLURAL_FORM/g,
-    snakeSingularProcessName
-  );
+  contents = contents.replace(/TABLE_NAME_PLURAL_FORM/g, snakeSingularProcessName);
 
-  contents = contents.replace(
-    /SINGULAR_SAMLL_CASE/g,
-    `${paramSingularProcessName}`
-  );
+  contents = contents.replace(/SINGULAR_SAMLL_CASE/g, `${paramSingularProcessName}`);
 
-  contents = contents.replace(
-    /PLURAL_SAMLL_CASE/g,
-    `${paramPluralProcessName}`
-  );
+  contents = contents.replace(/PLURAL_SAMLL_CASE/g, `${paramPluralProcessName}`);
 
-  contents = contents.replace(
-    /MODEL_SINGULAR_FORM/g,
-    `${pascalSingularProcessName}`
-  );
+  contents = contents.replace(/MODEL_SINGULAR_FORM/g, `${pascalSingularProcessName}`);
 
   let destPath = `${CURR_DIR}/src/database/seeders`;
   return { file, destPath, contents };
@@ -428,10 +341,10 @@ async function createAndWriteONFile(destPath, file, contents) {
   const writePath = `${destPath}/${file}`;
   if (!fs.existsSync(writePath)) {
     fs.writeFileSync(writePath, contents, 'utf8');
-    console.log('Path:', chalk.greenBright(writePath));
-    console.log(chalk.blueBright('File Generation Completed'));
+    info('Path:', chalk.greenBright(writePath));
+    info(chalk.blueBright('File Generation Completed'));
   } else {
-    console.error(chalk.redBright(`${file} already exists.`));
+    error(chalk.redBright(`${file} already exists.`));
   }
 }
 

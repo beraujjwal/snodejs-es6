@@ -6,7 +6,7 @@ import User from '../services/user.service.js';
 
 class UsersController extends Controller {
   /**
-   * Controller constructor
+   * @description User controller constructor
    * @author Ujjwal Bera
    * @param  {service} service - Service layer object
    */
@@ -32,10 +32,7 @@ class UsersController extends Controller {
         message: 'Profile details got successfully!',
       };
     }
-    throw new BaseError(
-      'Some error occurred while fetching profile details.',
-      500
-    );
+    throw new BaseError('Some error occurred while fetching profile details.', 500);
   }
 
   /**
@@ -44,7 +41,7 @@ class UsersController extends Controller {
    */
   async profile({ user }, { transaction }) {
     const phone = user?.phone;
-    let result = await userService.getProfile(phone);
+    let result = await userService.getProfile(phone, { transaction });
     if (result) {
       return {
         code: 200,
@@ -52,10 +49,7 @@ class UsersController extends Controller {
         message: 'Profile details got successfully!',
       };
     }
-    throw new BaseError(
-      'Some error occurred while fetching profile details.',
-      500
-    );
+    throw new BaseError('Some error occurred while fetching profile details.', 500);
   }
 
   /**
@@ -68,15 +62,14 @@ class UsersController extends Controller {
       transaction,
     });
     if (result) {
-      return res
-        .status(200)
-        .json(this.success(result, 'Profile details updated successfully!'));
+      return {
+        code: 200,
+        result,
+        message: 'Profile details updated successfully!',
+      };
     }
 
-    throw new BaseError(
-      'Some error occurred while updating profile details.',
-      500
-    );
+    throw new BaseError('Some error occurred while updating profile details.', 500);
   }
 
   /**
@@ -89,15 +82,14 @@ class UsersController extends Controller {
       transaction,
     });
     if (result) {
-      return res
-        .status(200)
-        .json(this.success(result, 'Profile password updated successfully!'));
+      return {
+        code: 200,
+        result,
+        message: 'Profile password updated successfully!',
+      };
     }
 
-    throw new BaseError(
-      'Some error occurred while updating profile password.',
-      500
-    );
+    throw new BaseError('Some error occurred while updating profile password.', 500);
   }
 
   /**
@@ -105,17 +97,16 @@ class UsersController extends Controller {
    * @param {*} req
    */
   async userList({ query }, { transaction }) {
-    let result = await userService.userList(query);
+    let result = await userService.userList(query, { transaction });
     if (result) {
-      return res
-        .status(200)
-        .json(this.success(result, 'User list got successfully!'));
+      return {
+        code: 200,
+        result,
+        message: 'User list got successfully!',
+      };
     }
 
-    throw new BaseError(
-      'Some error occurred while fetching list of users.',
-      500
-    );
+    throw new BaseError('Some error occurred while fetching list of users.', 500);
   }
 
   /**
@@ -130,9 +121,11 @@ class UsersController extends Controller {
       { transaction }
     );
     if (result) {
-      return res
-        .status(200)
-        .json(this.success(result, 'New user created successfully!'));
+      return {
+        code: 200,
+        result,
+        message: 'New user created successfully!',
+      };
     }
 
     throw new BaseError('Some error occurred while creating new user.', 500);
@@ -144,17 +137,16 @@ class UsersController extends Controller {
    */
   async userDetails({ params }, { transaction }) {
     let userId = params.id;
-    let result = await userService.userDetails(userId);
+    let result = await userService.userDetails(userId, { transaction });
     if (result) {
-      return res
-        .status(200)
-        .json(this.success(result, 'User details fetched successfully!'));
+      return {
+        code: 200,
+        result,
+        message: 'User details fetched successfully!',
+      };
     }
 
-    throw new BaseError(
-      'Some error occurred while fetching user details.',
-      500
-    );
+    throw new BaseError('Some error occurred while fetching user details.', 500);
   }
 
   /**
@@ -177,15 +169,14 @@ class UsersController extends Controller {
       { transaction }
     );
     if (result) {
-      return res
-        .status(200)
-        .json(this.success(result, 'User details updated successfully!'));
+      return {
+        code: 200,
+        result,
+        message: 'User details updated successfully!',
+      };
     }
 
-    throw new BaseError(
-      'Some error occurred while updating user details.',
-      500
-    );
+    throw new BaseError('Some error occurred while updating user details.', 500);
   }
 
   /**
@@ -197,9 +188,11 @@ class UsersController extends Controller {
     let userId = params.id;
     let result = await userService.userDelete(userId, { transaction });
     if (result) {
-      return res
-        .status(200)
-        .json(this.success(result, 'User deleted successfully!'));
+      return {
+        code: 200,
+        result,
+        message: 'User deleted successfully!',
+      };
     }
 
     throw new BaseError('Some error occurred while deleting user.', 500);

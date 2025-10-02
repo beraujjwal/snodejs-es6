@@ -78,8 +78,8 @@ class BaseController extends Base {
    * @returns {Object} - A response object containing the status code, result, and success message.
    * @throws {BaseError} - If an error occurs while fetching the item.
    */
-  async get({ params }, { transaction }) {
-    const response = await this.service.get(params, { transaction });
+  async findOne({ params }, { transaction }) {
+    const response = await this.service.findOne(params, { transaction });
     if (response) {
       return {
         code: 200,
@@ -260,9 +260,7 @@ class BaseController extends Base {
         message: 'The item was updated successfully.',
       };
     }
-    throw new BaseError(
-      'No changes detected. The record might already have the same status.'
-    );
+    throw new BaseError('No changes detected. The record might already have the same status.');
   }
 
   /**

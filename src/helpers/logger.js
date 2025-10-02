@@ -11,14 +11,14 @@ if (!fs.existsSync(logDir)) {
   fs.mkdirSync(logDir);
 }
 
-const logPath = path.join(logDir, `app-${todayFormat}.log`);
+const logPath = path.join(logDir, `app-custom-${todayFormat}.log`);
 
 // Rotate if > 1MB
 function rotateLog() {
   try {
     if (fs.existsSync(logPath)) {
       const stats = fs.statSync(logPath);
-      const MAX_SIZE = 1024 * 1024; // 1 MB
+      const MAX_SIZE = 10 * 1024 * 1024; // 1 MB
       const KEEP_SIZE = 200 * 1024; // keep last 200 KB
 
       if (stats.size > MAX_SIZE) {
@@ -49,7 +49,7 @@ function write(level, message) {
   const timestamp = new Date().toISOString();
   const formatted = `[${timestamp}] [${level}] ${util.format(message)}\n`;
 
-  logFile.write(formatted);
+  if (level !== 'INFO') logFile.write(formatted);
   logStdout.write(formatted);
 }
 

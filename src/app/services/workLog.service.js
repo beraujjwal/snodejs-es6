@@ -4,9 +4,11 @@ import Service from './service.js';
 
 class WorkLog extends Service {
   /**
-   * services constructor
+   * @description WorkLog service constructor
    * @author Ujjwal Bera
-   * @param null
+   * @param { string }: model
+   * @returns { object } : WorkLog service object
+   * @throws null
    */
   constructor(model) {
     super(model);

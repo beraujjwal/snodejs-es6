@@ -16,7 +16,7 @@ class PermissionValidation extends Validation {
     const validationRule = {
       name: 'required|string|unique:Permission,name',
     };
-    return await this.validate(req, res, next, validationRule);
+    return this.validate(req, res, next, validationRule);
   }
 
   async update(req, res, next) {
@@ -24,7 +24,7 @@ class PermissionValidation extends Validation {
       name: 'required|string|unique:Permission,name,id,' + req.params.id,
       status: 'required|boolean',
     };
-    return await this.validate(req, res, next, validationRule);
+    return this.validate(req, res, next, validationRule);
   }
 }
 export default new PermissionValidation();

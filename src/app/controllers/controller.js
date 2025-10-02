@@ -3,7 +3,7 @@ import { BaseController } from '../../system/core/controller/baseController.js';
 
 class Controller extends BaseController {
   /**
-   * @desc Controller constructor
+   * @desc @description Controller constructor
    *
    * @author Ujjwal Bera
    * @param  {service} service - Service layer object

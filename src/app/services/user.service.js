@@ -20,9 +20,11 @@ import {
 
 class User extends Service {
   /**
-   * Service constructor
+   * @description User service constructor
    * @author Ujjwal Bera
-   * @param null
+   * @param { string }: model
+   * @returns { object } : User service object
+   * @throws null
    */
   constructor(model) {
     super(model);
@@ -38,42 +40,42 @@ class User extends Service {
   }
 
   get role() {
-    if (!this.instances['Role']) {
-      this.instances['Role'] = this.getModel('Role');
+    if (!this.modelInstances['Role']) {
+      this.modelInstances['Role'] = this.getModel('Role');
     }
-    return this.instances['Role'];
+    return this.modelInstances['Role'];
     //return this.getModel('Role');
   }
 
   get permission() {
-    if (!this.instances['Permission']) {
-      this.instances['Permission'] = this.getModel('Permission');
+    if (!this.modelInstances['Permission']) {
+      this.modelInstances['Permission'] = this.getModel('Permission');
     }
-    return this.instances['Permission'];
+    return this.modelInstances['Permission'];
     // return this.getModel('Permission');
   }
 
   get resource() {
-    if (!this.instances['Resource']) {
-      this.instances['Resource'] = this.getModel('Resource');
+    if (!this.modelInstances['Resource']) {
+      this.modelInstances['Resource'] = this.getModel('Resource');
     }
-    return this.instances['Resource'];
+    return this.modelInstances['Resource'];
     // return this.getModel('Resource');
   }
 
   get userDevice() {
-    if (!this.instances['UserDevice']) {
-      this.instances['UserDevice'] = this.getModel('UserDevice');
+    if (!this.modelInstances['UserDevice']) {
+      this.modelInstances['UserDevice'] = this.getModel('UserDevice');
     }
-    return this.instances['UserDevice'];
+    return this.modelInstances['UserDevice'];
     // return this.getModel('UserDevice');
   }
 
   get userRole() {
-    if (!this.instances['UserRole']) {
-      this.instances['UserRole'] = this.getModel('UserRole');
+    if (!this.modelInstances['UserRole']) {
+      this.modelInstances['UserRole'] = this.getModel('UserRole');
     }
-    return this.instances['UserRole'];
+    return this.modelInstances['UserRole'];
     // return this.getModel('UserRole');
   }
 
@@ -135,15 +137,12 @@ class User extends Service {
    * @param res object
    * @return json object
    */
-  async signup(
-    { first_name, last_name, email, ext, phone, password, roles },
-    { transaction }
-  ) {
+  async signup({ first_name, last_name, email, ext, phone, password, roles }, { transaction }) {
     try {
       //Registering new user
-      if (!roles) throw new BaseError(__('INVALID_ROLES_SELECTED'));
+      if (!roles) throw new BaseError('INVALID_ROLES_SELECTED');
 
-      const tokenSalt = generateOTP(6, { digits: true });
+      // const tokenSalt = generateOTP(6, { digits: true });
       console.log('this.model', this.model.associations);
       console.log('data', {
         first_name,
@@ -173,10 +172,7 @@ class User extends Service {
 
       const userId = user.id;
 
-      const userRoles = await this.roleService.createUserRole(
-        { userId, roles },
-        { transaction }
-      );
+      const userRoles = await this.roleService.createUserRole({ userId, roles }, { transaction });
 
       let signupRes = { user, roles: userRoles };
       return signupRes;
@@ -193,6 +189,7 @@ class User extends Service {
    * @returns {Promise<{success: boolean, error: *}|{success: boolean, data: *}>}
    */
   async signin({ username, password }, { transaction }) {
+    // eslint-disable-next-line no-useless-escape
     const regexEmail = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
     try {
       const criteria = username.match(regexEmail)
@@ -212,8 +209,7 @@ class User extends Service {
           };
 
       const user = await this.getUserDetails(criteria, { transaction });
-      if (!user)
-        throw new BaseError(__('LOGIN_INVALID_USERNAME_PASSWORD'), 401);
+      if (!user) throw new BaseError('LOGIN_INVALID_USERNAME_PASSWORD', 401);
 
       await this.blockLoginAttempts(user?.blockExpires);
 
@@ -280,24 +276,21 @@ class User extends Service {
         { transaction }
       );
       if (updateResult[0] == 1) {
-        const currentUser = await this.model.findOne(
-          { where: { id: userID } },
-          { transaction }
-        );
+        const currentUser = await this.model.findOne({ where: { id: userID } }, { transaction });
         return JSON.parse(JSON.stringify(currentUser));
       }
 
       return false;
     } catch (ex) {
       throw new BaseError(
-        ex.message ||
-          'An error occurred while login into your account. Please try again.',
+        ex.message || 'An error occurred while login into your account. Please try again.',
         ex.status
       );
     }
   }
 
   async accountVerifyingOTPResend(username, { transaction }) {
+    // eslint-disable-next-line no-useless-escape
     const regexEmail = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
     try {
       //Finding user with set criteria
@@ -316,13 +309,9 @@ class User extends Service {
         userOnly: true,
       });
 
-      if (!user)
-        throw new BaseError(
-          'We are unable to find your account with the given details.'
-        );
+      if (!user) throw new BaseError('We are unable to find your account with the given details.');
 
-      if (user && user?.verified)
-        throw new BaseError('You account already verified.');
+      if (user && user?.verified) throw new BaseError('You account already verified.');
 
       await this.tokenService.createToken(
         { userId: user.id, sentFor: 'ACTIVATION', sentOn: username },
@@ -332,8 +321,7 @@ class User extends Service {
       return true;
     } catch (ex) {
       throw new BaseError(
-        ex.message ||
-          'An error occurred while login into your account. Please try again.',
+        ex.message || 'An error occurred while login into your account. Please try again.',
         ex.status
       );
     }
@@ -342,10 +330,7 @@ class User extends Service {
   async generateTokenFromRefreshToken({ token }, { transaction }) {
     try {
       // Verify the refresh token first
-      const decoded = jwt.verify(
-        decrypt(token),
-        this.getEnv('JWT_REFRESH_TOKEN_SECRET')
-      );
+      const decoded = jwt.verify(decrypt(token), this.getEnv('JWT_REFRESH_TOKEN_SECRET'));
 
       const criteria = {
         id: decoded.id,
@@ -354,8 +339,7 @@ class User extends Service {
       };
 
       const user = await this.getUserDetails(criteria, { transaction });
-      if (!user)
-        throw new BaseError(__('LOGIN_INVALID_USERNAME_PASSWORD'), 401);
+      if (!user) throw new BaseError('LOGIN_INVALID_USERNAME_PASSWORD', 401);
 
       await this.blockLoginAttempts(user?.blockExpires);
 
@@ -384,17 +368,15 @@ class User extends Service {
         refreshToken: encrypt(refreshToken),
         expiresIn: await getExpiresInTime(),
       };
-    } catch (err) {
-      throw new BaseError('Invalid or expired refresh token.', 401);
+    } catch (ex) {
+      throw new BaseError(ex.message || 'Invalid or expired refresh token.', 401);
     }
   }
 
   async invalidLoginAttempt(user, transaction) {
     try {
       let blockLoginAttempts = parseInt(this.getEnv('BLOCK_LOGIN_ATTEMPTS'));
-      const loginAttempts = user?.loginAttempts
-        ? parseInt(user.loginAttempts)
-        : 0;
+      const loginAttempts = user?.loginAttempts ? parseInt(user.loginAttempts) : 0;
       const filter = { id: user.id };
       let data = { loginAttempts: loginAttempts + 1 };
       if (loginAttempts >= blockLoginAttempts) {
@@ -410,36 +392,27 @@ class User extends Service {
       );
 
       if (loginAttempts >= blockLoginAttempts) {
-        throw new BaseError(
-          'Your login attempts exist. Please try after 300 seconds.',
-          401
-        );
+        throw new BaseError('Your login attempts exist. Please try after 300 seconds.', 401);
       } else {
         throw new BaseError('You have submitted invalid login details.', 401);
       }
     } catch (ex) {
-      throw new BaseError(ex.message || __('INVALID_LOGIN_ATTEMPT'), ex.status);
+      throw new BaseError(ex.message || 'INVALID_LOGIN_ATTEMPT', ex.status);
     }
   }
 
   async blockLoginAttempts(blockExpires) {
     try {
-      const currentDateTime = moment()
-        .utc(this.getEnv('APP_TIMEZONE'))
-        .toDate();
+      const currentDateTime = moment().utc(this.getEnv('APP_TIMEZONE')).toDate();
       if (blockExpires > currentDateTime) {
         let tryAfter =
-          (new Date(blockExpires).getTime() -
-            new Date(currentDateTime).getTime()) /
-          1000;
+          (new Date(blockExpires).getTime() - new Date(currentDateTime).getTime()) / 1000;
         throw new BaseError(
-          `Your login attempts exist. Please try after ${Math.round(
-            tryAfter
-          )} seconds`
+          `Your login attempts exist. Please try after ${Math.round(tryAfter)} seconds`
         );
       }
     } catch (ex) {
-      throw new BaseError(ex.message || __('INVALID_LOGIN_ATTEMPT'), ex.status);
+      throw new BaseError(ex.message || 'INVALID_LOGIN_ATTEMPT', ex.status);
     }
   }
 
@@ -447,13 +420,7 @@ class User extends Service {
     try {
       let user = await this.model.findOne({
         attributes: {
-          exclude: [
-            'createdAt',
-            'updatedAt',
-            'deletedAt',
-            'isEmailVerified',
-            'isPhoneVerified',
-          ],
+          exclude: ['createdAt', 'updatedAt', 'deletedAt', 'isEmailVerified', 'isPhoneVerified'],
         },
         where: criteria,
         include: [
@@ -478,17 +445,13 @@ class User extends Service {
       });
 
       if (!user)
-        throw new BaseError(
-          'We are unable to find your account with the given details.',
-          401
-        );
+        throw new BaseError('We are unable to find your account with the given details.', 401);
 
       if (!userOnly) {
         user = user.toJSON();
         const allRoles = user.roles;
 
-        if (allRoles.length === 0)
-          throw new BaseError('User has no roles.', 400);
+        if (allRoles.length === 0) throw new BaseError('User has no roles.', 400);
 
         const rolesWithDetails = await Promise.all(
           allRoles.map(async (role) => {

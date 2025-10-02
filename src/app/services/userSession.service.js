@@ -4,9 +4,11 @@ import Service from './service.js';
 
 class UserSession extends Service {
   /**
-   * Service constructor
+   * @description UserSession service constructor
    * @author Ujjwal Bera
-   * @param null
+   * @param { string }: model
+   * @returns { object } : UserSession service object
+   * @throws null
    */
   constructor(model) {
     super(model);

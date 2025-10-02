@@ -1,7 +1,7 @@
 'use strict';
 import { Sequelize } from 'sequelize';
 import config from '../../config/db.config.js';
-import { info } from '../../helpers/logger.js';
+import { info, warn } from '../../helpers/logger.js';
 
 const sequelize = new Sequelize(config.name, config.username, config.password, {
   host: config.host,

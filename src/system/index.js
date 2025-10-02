@@ -17,12 +17,12 @@ import limiter from '../config/rateLimit.config.js';
 import router from './route/index.js';
 import { info, error } from '../helpers/logger.js';
 import { startDBListener } from './database/dbListener.js';
-import { workerLoop } from '../helpers/queueJobs.js';
-
+import { workerLoop } from '../jobs/index.js';
 import deepTrim from './core/middleware/deepTrimming.js';
-const __dirname = new URL('.', import.meta.url).pathname;
 
 import { APP_PORT, APP_ENV, APP_URL, APP_TIMEZONE } from '../config/config.js';
+
+const __dirname = new URL('.', import.meta.url).pathname;
 
 //import './sentry-init.js';
 
@@ -96,7 +96,6 @@ app.get('/', async (req, res) => {
 });
 
 app.get('/health', async (req, res) => {
-  console.log('Health checked on ', new Date());
   return res.status(200).send({
     error: false,
     code: 200,
@@ -112,11 +111,11 @@ app.use('/', router);
 startDBListener();
 
 // Start queue job
-//workerLoop();
+workerLoop();
 
 //Sentry.setupExpressErrorHandler(app);
 let errorCount = 0;
-app.use(function (err, req, res, next) {
+app.use(function (err, req, res) {
   let showErrorNumber = '';
   const code = err?.code || err?.statusCode;
   let errorMessage = err.toString();

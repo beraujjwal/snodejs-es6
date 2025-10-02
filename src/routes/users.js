@@ -7,7 +7,7 @@ import UsersController from '../app/controllers/users.controller.js';
 import AuthController from '../app/controllers/auth.controller.js';
 import UserValidation from '../app/validations/user.validation.js';
 import AuthMiddleware from '../app/middlewares/auth.middleware.js';
-import AclMiddleware from '../app/middlewares/acl.middleware.js';
+//import AclMiddleware from '../app/middlewares/acl.middleware.js';
 
 import { exceptionHandler } from '../app/middlewares/exceptionHandler.middleware.js';
 
@@ -20,20 +20,12 @@ router.group('/v1.0', (versionRouter) => {
       [UserValidation.checkUserExistsByEmail],
       exceptionHandler(AuthController.checkUserExistsByEmail)
     );
-    authRouter.post(
-      '/sign-up',
-      [UserValidation.signup],
-      exceptionHandler(AuthController.signup)
-    );
+    authRouter.post('/sign-up', [UserValidation.signup], exceptionHandler(AuthController.signup));
     authRouter.post(
       '/tenant-registration-verification/:identifier/:verificationToken',
       exceptionHandler(AuthController.verificationTenantAccount)
     );
-    authRouter.post(
-      '/sign-in',
-      [UserValidation.signin],
-      exceptionHandler(AuthController.login)
-    );
+    authRouter.post('/sign-in', [UserValidation.signin], exceptionHandler(AuthController.login));
 
     authRouter.post(
       '/generate-token',
@@ -51,14 +43,8 @@ router.group('/v1.0', (versionRouter) => {
       [UserValidation.signin],
       exceptionHandler(AuthController.otpVerify)
     );
-    authRouter.post(
-      '/email-verify',
-      exceptionHandler(AuthController.emailVerify)
-    );
-    authRouter.post(
-      '/phone-verify',
-      exceptionHandler(AuthController.phoneVerify)
-    );
+    authRouter.post('/email-verify', exceptionHandler(AuthController.emailVerify));
+    authRouter.post('/phone-verify', exceptionHandler(AuthController.phoneVerify));
 
     authRouter.post(
       '/forgot-password',

@@ -53,8 +53,7 @@ ResourcePermission.init(
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: true,
-      comment:
-        'This column is for checking if the resource permission is active or not.',
+      comment: 'This column is for checking if the resource permission is active or not.',
     },
   },
   {
@@ -63,6 +62,7 @@ ResourcePermission.init(
     tableName: 'acl_resource_permissions',
     timestamps: true, // Automatically adds `createdAt` and `updatedAt`
     paranoid: true, // Enables `deletedAt` for soft deletes
+    footprint: true,
     defaultScope: {
       attributes: {
         exclude: ['deletedAt'],

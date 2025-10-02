@@ -16,20 +16,20 @@ class ResourceValidation extends Validation {
     const validationRule = {
       parent: 'exists:Resource,id',
       name: 'required|string|unique:Resource,name',
-      permissions: 'required|exists:Permission,id',
+      resource_permissions: 'required|exists:Permission,id',
       status: 'boolean',
     };
-    return await this.validate(req, res, next, validationRule);
+    return this.validate(req, res, next, validationRule);
   }
 
   async update(req, res, next) {
     const validationRule = {
       parent: 'exists:Resource,id',
       name: 'required|string|unique:Resource,name,id,' + req.params.id,
-      permissions: 'required|exists:Permission,id',
+      resource_permissions: 'required|exists:Permission,id',
       status: 'required|boolean',
     };
-    return await this.validate(req, res, next, validationRule);
+    return this.validate(req, res, next, validationRule);
   }
 }
 export default new ResourceValidation();

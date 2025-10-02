@@ -18,10 +18,7 @@ router.group('/v1.0', (router) => {
   router.group('/resource', AuthMiddleware.verifyToken, (router) => {
     router.post(
       '',
-      [
-        AclMiddleware.hasPermission('create', 'resources'),
-        resourceValidation.create,
-      ],
+      [AclMiddleware.hasPermission('create', 'resources'), resourceValidation.create],
       exceptionHandler(resourcesController.createOne)
     );
 
@@ -33,10 +30,7 @@ router.group('/v1.0', (router) => {
 
     router.put(
       '/:id',
-      [
-        AclMiddleware.hasPermission('update', 'resources'),
-        resourceValidation.update,
-      ],
+      [AclMiddleware.hasPermission('update', 'resources'), resourceValidation.update],
       exceptionHandler(resourcesController.updateByPk)
     );
 
@@ -48,20 +42,14 @@ router.group('/v1.0', (router) => {
 
     router.delete(
       '/:id',
-      [
-        AuthMiddleware.verifyToken,
-        AclMiddleware.hasPermission('delete', 'resources'),
-      ],
+      [AuthMiddleware.verifyToken, AclMiddleware.hasPermission('delete', 'resources')],
       exceptionHandler(resourcesController.destroy)
     );
   });
 
   router.delete(
     '/resource-permission/:resourceId/:permissionId',
-    [
-      AuthMiddleware.verifyToken,
-      AclMiddleware.hasPermission('update', 'resources'),
-    ],
+    [AuthMiddleware.verifyToken, AclMiddleware.hasPermission('update', 'resources')],
     exceptionHandler(resourcesController.deleteResourcePermission)
   );
 });

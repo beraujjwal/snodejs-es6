@@ -6,7 +6,7 @@ import Permission from '../services/permission.service.js';
 
 class PermissionsController extends Controller {
   /**
-   * Controller constructor
+   * @description Permission controller constructor
    * @author Ujjwal Bera
    * @param  {service} service - Service layer object
    */

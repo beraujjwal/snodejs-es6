@@ -6,7 +6,7 @@ import UserActivity from '../services/userActivity.service.js';
 
 class UserActivitiesController extends Controller {
   /**
-   * Controller constructor
+   * @description UserActivity controller constructor
    * @author Ujjwal Bera
    * @param null
    */
@@ -17,12 +17,12 @@ class UserActivitiesController extends Controller {
 
   async findAll({ query }, { transaction }) {
     const response = await this.service.findAll(query, { transaction });
-    const items = Base.toLabelPluralize(this.name);
+    //const items = Controller.toLabelPluralize(this.name);
     if (response) {
       return {
         code: 200,
         result: response,
-        message: __('ITEMS_LIST_FETCH_SUCESSFULLY', { items: items }),
+        message: 'ITEMS_LIST_FETCH_SUCESSFULLY',
       };
     }
   }
@@ -32,12 +32,12 @@ class UserActivitiesController extends Controller {
     const response = await this.service.findByPk(parseInt(id), {
       transaction,
     });
-    const item = Base.toLabelSingular(this.name);
+    //const item = Controller.toLabelSingular(this.name);
     if (response) {
       return {
         code: 200,
         result: response,
-        message: __('ITEM_DETAIL_FETCH_SUCESSFULLY', { item: item }),
+        message: 'ITEM_DETAIL_FETCH_SUCESSFULLY',
       };
     }
     throw new BaseError('Some error occurred while fetching item details.');
@@ -107,10 +107,6 @@ class UserActivitiesController extends Controller {
   }
 }
 
-const userActivityService = UserActivity.getInstance(
-  'UserActivity'
-);
+const userActivityService = UserActivity.getInstance('UserActivity');
 
-export default new UserActivitiesController(
-  userActivityService
-);
+export default new UserActivitiesController(userActivityService);

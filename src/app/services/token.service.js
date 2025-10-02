@@ -1,26 +1,23 @@
 'use strict';
 import moment from 'moment';
+import jwt from 'jsonwebtoken';
 import { Op } from 'sequelize';
-//import autoBind from '../../system/autobind';
 import { BaseError } from '../../system/core/error/baseError.js';
 import Service from './service.js';
 
-import {
-  generateOTP,
-  generateToken,
-  generateRefreshToken,
-  getExpiresInTime,
-} from '../../helpers/utility.js';
+import { generateOTP } from '../../helpers/utility.js';
 
 import { sentOTPMail } from '../../libraries/email.library.js';
 import { sentOTPSMS } from '../../libraries/sms.library.js';
-import { encrypt, decrypt } from '../../helpers/encodeDecode.js';
+import { decrypt } from '../../helpers/encodeDecode.js';
 
 class Token extends Service {
   /**
-   * services constructor
+   * @description Token service constructor
    * @author Ujjwal Bera
-   * @param null
+   * @param { string }: model
+   * @returns { object } : Token service object
+   * @throws null
    */
   constructor(model) {
     super(model);
@@ -69,7 +66,7 @@ class Token extends Service {
 
   async findOtp(userId, otp, type, sentOn) {
     try {
-      let cutoff = moment().utc(this.env.APP_TIMEZONE).toDate();
+      let cutoff = moment().utc(this.getEnv('APP_TIMEZONE')).toDate();
       let tokenCriteria = {
         user: userId,
         token: otp,
@@ -88,7 +85,7 @@ class Token extends Service {
     try {
       let data = {
         status: false,
-        expiresAt: moment().utc(this.env.APP_TIMEZONE).toDate(),
+        expiresAt: moment().utc(this.getEnv('APP_TIMEZONE')).toDate(),
         token: null,
       };
       let filter = { _id: Id };
@@ -155,94 +152,6 @@ class Token extends Service {
       return userToken;
     } catch (ex) {
       throw new BaseError(ex);
-    }
-  }
-
-  async findUpdateOrCreate(userId, type, sentOn) {
-    try {
-      let isEmail = sentOn.match(this.regexEmail) ? true : false;
-      let sentTo = 'phone';
-      const currentDateTime = moment().utc(this.env.APP_TIMEZONE).toDate();
-      const expiresAt = moment()
-        .utc(this.env.APP_TIMEZONE)
-        .add(5, 'm')
-        .toDate();
-
-      if (isEmail) {
-        sentTo = 'email';
-      }
-
-      let cutoff = currentDateTime;
-      let tokenCriteria = {
-        user: userId,
-        status: true,
-        type: type,
-        sent_on: sentOn,
-        expiresAt: { $gt: cutoff },
-      };
-      let otpResponse = await this.model
-        .findOne(tokenCriteria)
-        .session(session);
-
-      const otpToken = await this.generateOTP(6, {
-        digits: true,
-      });
-
-      if (otpResponse) {
-        let filter = { _id: otpResponse._id };
-        await this.model
-          .updateOne(filter, {
-            $set: {
-              token: otpToken,
-              expiresAt: expiresAt,
-            },
-          })
-          .session(session);
-
-        otpResponse.token = otpToken;
-        otpResponse.expiresAt = expiresAt;
-        return otpResponse;
-      }
-
-      let userToken = await this.model.create(
-        {
-          user: userId,
-          token: otpToken,
-          type: type,
-          sent_to: sentTo,
-          sent_on: sentOn,
-          status: true,
-          expiresAt: expiresAt,
-        },
-        { session: session }
-      );
-
-      return userToken;
-    } catch (ex) {
-      throw new BaseError(ex);
-    }
-  }
-
-  async generateTokenFromRefreshToken({ token }, { transaction }) {
-    try {
-      // Verify the refresh token first
-      const decoded = jwt.verify(
-        decrypt(token),
-        this.getEnv('JWT_REFRESH_TOKEN_SECRET')
-      );
-
-      // You can optionally revalidate user from DB here using decoded.userId/email
-
-      // Generate a new access token
-      const accessToken = jwt.sign(
-        { userId: decoded.userId }, // or whatever payload you use
-        process.env.JWT_ACCESS_SECRET,
-        { expiresIn: '15m' } // Short-lived access token
-      );
-
-      return accessToken;
-    } catch (err) {
-      throw new BaseError('Invalid or expired refresh token.', 401);
     }
   }
 }

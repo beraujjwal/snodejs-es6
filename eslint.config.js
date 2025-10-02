@@ -1,31 +1,38 @@
 import js from '@eslint/js';
 import globals from 'globals';
 import prettier from 'eslint-plugin-prettier';
-import stylistic from '@stylistic/eslint-plugin'; // For formatting rules
 
 export default [
+  js.configs.recommended, // base ESLint rules
   {
-    files: ['**/*.{js,mjs,cjs}'],
+    ignores: ['node_modules/**', 'dist/**', 'src/system/**'], // ✅ move here
+  },
+  {
+    files: ['src/**/*.js'], // ✅ applies only to src js files (excluding ignores)
     languageOptions: {
-      ecmaVersion: 2022,
+      ecmaVersion: 'latest',
       sourceType: 'module',
-      globals: globals.node,
+      globals: {
+        ...globals.node,
+        ...globals.jest,
+      },
     },
     plugins: {
       prettier,
-      '@stylistic': stylistic,
     },
     rules: {
-      ...js.configs.recommended.rules,
+      // 🚫 Disable ESLint stylistic rules (Prettier handles this)
+      semi: 'off',
+      quotes: 'off',
+      indent: 'off',
+      'comma-dangle': 'off',
 
-      // Match Prettier formatting
-      '@stylistic/indent': ['error', 2], // ✅ 2 spaces, not tabs
-      '@stylistic/semi': ['error', 'always'],
-      '@stylistic/quotes': ['error', 'single'],
-      '@stylistic/comma-dangle': ['error', 'always-multiline'],
-
-      // Let Prettier handle final formatting
+      // ✅ Prettier runs formatting
       'prettier/prettier': 'error',
+
+      // ✅ Keep logic rules
+      'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      'no-console': 'off',
     },
   },
 ];

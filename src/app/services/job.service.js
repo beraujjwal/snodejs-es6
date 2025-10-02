@@ -4,28 +4,32 @@ import Service from './service.js';
 
 class Job extends Service {
   /**
-   * Service constructor
+   * @description Job service constructor
    * @author Ujjwal Bera
-   * @param null
+   * @param { string }: model
+   * @returns { object } : Job service object
+   * @throws null
    */
   constructor(model) {
     super(model);
     this.model = this.getModel(model);
+    this.name = model;
   }
 
   static getInstance(model) {
-    if (!this.instances) {
-      this.instances = new Job(model);
+    if (!this.instances[model]) {
+      this.instances[model] = new Job(model);
     }
-    return this.instances;
+    return this.instances[model];
   }
 
-  async fetchPendingJobs() {
+  async fetchPendingJobs({ limit = 1 }) {
     try {
       const jobs = await this.model.findAll({
         where: { progressStatus: 'pending', module: 'claim' },
-        limit: 2,
+        limit,
         order: [['createdAt', 'ASC']],
+        logging: false,
       });
       return jobs;
     } catch (ex) {
@@ -36,13 +40,17 @@ class Job extends Service {
   async processJob(job) {
     try {
       let jobStatus = false;
-      job.update({ progressStatus: 'processing', attempts: job.attempts + 1 });
+      job.update({ progressStatus: 'processing', attempts: job.attempts + 1 }, { logging: false });
       if (job.source === 'claim_document' && job.type === 'thumbnail') {
         jobStatus = await this.workOnTheJob(job);
       }
 
-      if (jobStatus) {
-        job.update({ progressStatus: 'failed' });
+      if (!jobStatus) {
+        if (job.attempts + 1 >= job.maxAttempts) {
+          job.update({ progressStatus: 'failed' });
+        } else {
+          job.update({ progressStatus: 'pending' });
+        }
       } else {
         job.update({ progressStatus: 'completed' });
       }

@@ -7,7 +7,7 @@ import Resource from '../services/resource.service.js';
 
 class resourcesController extends Controller {
   /**
-   * Controller constructor
+   * @description Resource controller constructor
    * @author Ujjwal Bera
    * @param  {service} service - Service layer object
    */
@@ -31,9 +31,7 @@ class resourcesController extends Controller {
         message: 'Resource permission deleted successfully.',
       };
     }
-    throw new BaseError(
-      'Some error occurred while deleting resource permission.'
-    );
+    throw new BaseError('Some error occurred while deleting resource permission.');
   }
 }
 

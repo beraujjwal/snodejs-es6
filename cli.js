@@ -1,27 +1,22 @@
 'use strict';
 import chalk from 'chalk';
-const log = console.log;
 import moduleGenerator from './src/system/generator/index.js';
 import { dbManipulation } from './src/system/database/dbMigrations.js';
 //import librarySetup from "./system/setup/index.js";
+import { info, error } from './src/helpers/console.js';
 
 async function main() {
   try {
+    // eslint-disable-next-line no-undef
     const argumentsArr = process.argv.slice(2);
 
     if (argumentsArr.length === 2 && argumentsArr[0].indexOf(':') === 4) {
       let processAction = argumentsArr[0].slice(5);
-      let actionArr = [
-        'controller',
-        'model',
-        'service',
-        'validation',
-        'module',
-      ];
+      let actionArr = ['controller', 'model', 'service', 'validation', 'module'];
       if (actionArr.includes(processAction)) {
         await moduleGenerator(argumentsArr);
       } else {
-        log(chalk.bgRed.bold('Invalid Make Command'));
+        info(chalk.bgRed.bold('Invalid Make Command'));
       }
     } else if (argumentsArr.length >= 2 && argumentsArr[0].indexOf(':') === 3) {
       let processAction = argumentsArr[0].slice(4);
@@ -29,12 +24,9 @@ async function main() {
       if (actionArr.includes(processAction)) {
         await dbManipulation(argumentsArr);
       } else {
-        log(chalk.bgRed.bold('Invalid Make Command'));
+        info(chalk.bgRed.bold('Invalid Make Command'));
       }
-    } else if (
-      argumentsArr.length === 2 &&
-      argumentsArr[0].indexOf(':') === 5
-    ) {
+    } else if (argumentsArr.length === 2 && argumentsArr[0].indexOf(':') === 5) {
       let processAction = argumentsArr[0].slice(4);
       let actionArr = [
         'elasticsearch',
@@ -47,15 +39,15 @@ async function main() {
         'winston',
       ];
       if (actionArr.includes(processAction)) {
-        await librarySetup(argumentsArr);
+        //await librarySetup(argumentsArr);
       } else {
-        log(chalk.bgRed.bold('Invalid Make Command'));
+        info(chalk.bgRed.bold('Invalid Make Command'));
       }
     } else {
       throw new Error('Invalid Command');
     }
   } catch (ex) {
-    log(ex.message);
+    error(ex.message);
   }
 }
 

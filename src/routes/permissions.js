@@ -15,55 +15,40 @@ const router = express.Router();
 router.group('/v1.0', (router) => {
   router.get(
     '/permissions',
-    [
-      AuthMiddleware.verifyToken,
-      AclMiddleware.hasPermission('read', 'permissions'),
-    ],
-    exceptionHandler(PermissionsController.permissionList)
+    [AuthMiddleware.verifyToken, AclMiddleware.hasPermission('read', 'permissions')],
+    exceptionHandler(PermissionsController.findAll)
   );
-  router.group(
-    '/permission',
-    AuthMiddleware.verifyToken,
-    (router) => {
-      router.post(
-        '',
-        [
-          AclMiddleware.hasPermission('create', 'permissions'),
-          permissionValidation.create,
-        ],
-        exceptionHandler(PermissionsController.permissionStore)
-      );
+  router.group('/permission', AuthMiddleware.verifyToken, (router) => {
+    router.post(
+      '',
+      [AclMiddleware.hasPermission('create', 'permissions'), permissionValidation.create],
+      exceptionHandler(PermissionsController.createOne)
+    );
 
-      router.get(
-        '/:id',
-        [AclMiddleware.hasPermission('read', 'permissions')],
-        exceptionHandler(PermissionsController.permissionDetails)
-      );
+    router.get(
+      '/:id',
+      [AclMiddleware.hasPermission('read', 'permissions')],
+      exceptionHandler(PermissionsController.findByPk)
+    );
 
-      router.put(
-        '/:id',
-        [
-          AclMiddleware.hasPermission('update', 'permissions'),
-          permissionValidation.update,
-        ],
-        exceptionHandler(PermissionsController.permissionUpdate)
-      );
+    router.put(
+      '/:id',
+      [AclMiddleware.hasPermission('update', 'permissions'), permissionValidation.update],
+      exceptionHandler(PermissionsController.updateByPk)
+    );
 
-      router.patch(
-        '/:id',
-        [
-          AclMiddleware.hasPermission('update', 'permissions')
-        ],
-        exceptionHandler(PermissionsController.permissionStatusUpdate)
-      );
+    router.patch(
+      '/:id',
+      [AclMiddleware.hasPermission('update', 'permissions')],
+      exceptionHandler(PermissionsController.switchStatusByPk)
+    );
 
-      router.delete(
-        '/:id',
-        [AclMiddleware.hasPermission('delete', 'permissions')],
-        exceptionHandler(PermissionsController.permissionDelete)
-      );
-    }
-  );
+    router.delete(
+      '/:id',
+      [AclMiddleware.hasPermission('delete', 'permissions')],
+      exceptionHandler(PermissionsController.deleteById)
+    );
+  });
 });
 
 export default router;

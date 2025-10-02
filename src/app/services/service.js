@@ -4,9 +4,11 @@ import BaseService from '../../system/core/service/baseService.js';
 
 class Service extends BaseService {
   /**
-   * Service constructor
+   * @description Service constructor
    * @author Ujjwal Bera
-   * @param null
+   * @param { string }: model
+   * @returns { object } : Service service object
+   * @throws null
    */
   constructor(model) {
     super(model);
@@ -24,7 +26,6 @@ class Service extends BaseService {
   async removeDuplicates(arr) {
     try {
       return [...new Set(arr)];
-      //return arr.filter((item, index) => arr.indexOf(item) === index);
     } catch (ex) {
       throw new BaseError(ex.message);
     }
@@ -33,10 +34,7 @@ class Service extends BaseService {
   async updateNestedStatus(rootId, newStatus, { transaction }) {
     try {
       // Update status of the current node
-      await this.model.update(
-        { status: newStatus },
-        { where: { id: rootId }, transaction }
-      );
+      await this.model.update({ status: newStatus }, { where: { id: rootId }, transaction });
 
       // Find children of the current node
       const childrens = await this.model.findAll({

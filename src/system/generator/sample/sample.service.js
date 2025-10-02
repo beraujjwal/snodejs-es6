@@ -5,9 +5,11 @@ import Service from './service.js';
 
 class SERVICE_SINGULAR_FORM extends Service {
   /**
-   * @description menu service constructor
-   * @param null
+   * @description SERVICE_SINGULAR_FORM service constructor
    * @author Ujjwal Bera
+   * @param { string }: model
+   * @returns { object } : SERVICE_SINGULAR_FORM service object
+   * @throws null
    */
   constructor(model) {
     super(model);

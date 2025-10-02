@@ -21,7 +21,7 @@ import { decrypt } from '../../helpers/encodeDecode.js';
 
 class AuthController extends Controller {
   /**
-   * Controller constructor
+   * @description Auth controller constructor
    * @author Ujjwal Bera
    * @param {service} service - Service layer object
    */
@@ -47,10 +47,7 @@ class AuthController extends Controller {
   async checkUserExistsByEmail({ body }, { transaction }) {
     const { email, roles } = body;
 
-    const userExists = await this.service.checkUserExistsByEmail(
-      { email, roles },
-      { transaction }
-    );
+    const userExists = await this.service.checkUserExistsByEmail({ email, roles }, { transaction });
     let isUserExists = userExists ? true : false;
     return {
       code: 200,
@@ -60,7 +57,7 @@ class AuthController extends Controller {
   }
 
   /**
-   * @desc Registers a new user with the provided details
+   * @description Registers a new user with the provided details
    * @param {Object} body - The request body containing name, email, phone, password, and roles
    * @param {Object} transaction - The transaction object for database operations
    * @returns {Object} An object containing the status code, result, and message
@@ -94,10 +91,7 @@ class AuthController extends Controller {
         message: 'User created successfully!',
       };
     }
-    throw new BaseError(
-      'Some error occurred while verify your account. Please try again.',
-      500
-    );
+    throw new BaseError('Some error occurred while verify your account. Please try again.', 500);
   }
 
   async verificationTenantAccount({ params }, { transaction }) {
@@ -105,18 +99,14 @@ class AuthController extends Controller {
     const email = decrypt(identifier);
     const token = decrypt(verificationToken);
 
-    const verificationTokenResult = await this.tokenService.verificationToken(
-      email,
-      token,
-      { transaction }
-    );
-    if (!verificationTokenResult)
-      throw new BaseError('Invalid varification.', 403);
+    const verificationTokenResult = await this.tokenService.verificationToken(email, token, {
+      transaction,
+    });
+    if (!verificationTokenResult) throw new BaseError('Invalid varification.', 403);
 
-    const userInfo = await this.service.verifyTenantAccount(
-      verificationTokenResult.userID,
-      { transaction }
-    );
+    const userInfo = await this.service.verifyTenantAccount(verificationTokenResult.userID, {
+      transaction,
+    });
 
     if (userInfo) {
       return {
@@ -125,10 +115,7 @@ class AuthController extends Controller {
         message: 'Your account activated successfully!',
       };
     }
-    throw new BaseError(
-      'Some error occurred while verify your account. Please try again.',
-      500
-    );
+    throw new BaseError('Some error occurred while verify your account. Please try again.', 500);
   }
 
   /**
@@ -148,10 +135,7 @@ class AuthController extends Controller {
         message: 'User activated successfully!',
       };
     }
-    throw new BaseError(
-      'Some error occurred while verify your account. Please try again.',
-      500
-    );
+    throw new BaseError('Some error occurred while verify your account. Please try again.', 500);
   }
 
   /**
@@ -166,10 +150,7 @@ class AuthController extends Controller {
     let message = 'Please complete your signup process!';
     const { username, password } = body;
 
-    const result = await this.service.signin(
-      { username, password },
-      { transaction }
-    );
+    const result = await this.service.signin({ username, password }, { transaction });
 
     const { browser, os, deviceId, deviceType, fcmToken, ip } = deviceInfo;
     const latestUserDevice = await this.userDeviceService.addNewDevice(
@@ -189,7 +170,7 @@ class AuthController extends Controller {
 
     delete result.tokenSalt;
     if (result.token) {
-      message = __('LOGIN_SUCCESS');
+      message = 'LOGIN_SUCCESS';
     } else if (result.user?.isCompleted) {
       message = 'Login token generated successfully!';
     }
@@ -217,7 +198,7 @@ class AuthController extends Controller {
    */
   async accountVerificationByOTP({ body, deviceInfo }, { transaction }) {
     let message = 'Please compleat your signup process!';
-    const { browser, os, deviceId, deviceType, fcmToken } = deviceInfo;
+    const { deviceId, deviceType, fcmToken } = deviceInfo;
     const { username, otp } = body;
     const result = await userService.accountVerificationByOTP(
       { username, otp },
@@ -275,10 +256,7 @@ class AuthController extends Controller {
       };
     }
 
-    throw new BaseError(
-      'Some error occurred while verifying your phone number.',
-      500
-    );
+    throw new BaseError('Some error occurred while verifying your phone number.', 500);
   }
 
   async emailVerify({ body }, { transaction }) {
@@ -293,18 +271,12 @@ class AuthController extends Controller {
       };
     }
 
-    throw new BaseError(
-      'Some error occurred while verifying your email address.',
-      500
-    );
+    throw new BaseError('Some error occurred while verifying your email address.', 500);
   }
 
   async forgotPassword({ body }, { transaction }) {
     let { username } = body;
-    let result = await userService.forgotPassword(
-      { username },
-      { transaction }
-    );
+    let result = await userService.forgotPassword({ username }, { transaction });
     if (result) {
       return {
         code: 200,
@@ -327,10 +299,7 @@ class AuthController extends Controller {
       };
     }
 
-    throw new BaseError(
-      'Some error occurred while verify your account. Please try again.',
-      500
-    );
+    throw new BaseError('Some error occurred while verify your account. Please try again.', 500);
   }
 
   /**
@@ -342,10 +311,7 @@ class AuthController extends Controller {
    */
   async resetPassword({ body }, { transaction }) {
     let { username, otp, password } = body;
-    let result = await userService.resetPassword(
-      { username, otp, password },
-      { transaction }
-    );
+    let result = await userService.resetPassword({ username, otp, password }, { transaction });
     if (result) {
       return {
         code: 200,
@@ -354,18 +320,12 @@ class AuthController extends Controller {
       };
     }
 
-    throw new BaseError(
-      'Some error occurred while verify your account. Please try again.',
-      500
-    );
+    throw new BaseError('Some error occurred while verify your account. Please try again.', 500);
   }
 
   async generateToken({ body }, { transaction }) {
     let { token } = body;
-    let result = await userService.generateTokenFromRefreshToken(
-      { token },
-      { transaction }
-    );
+    let result = await userService.generateTokenFromRefreshToken({ token }, { transaction });
     if (result) {
       return {
         code: 200,
@@ -378,13 +338,12 @@ class AuthController extends Controller {
   }
 
   async logout({ user, deviceInfo }, { transaction }) {
-    const result = await this.service.logout(
-      { user, deviceInfo },
-      { transaction }
-    );
+    const result = await this.service.logout({ user, deviceInfo }, { transaction });
 
-    const userRedisKey = `user-${user.id}`;
-    deleteValue(userRedisKey);
+    // Delete data from redis
+    // const userRedisKey = `user-${user.id}`;
+    // deleteValue(userRedisKey);
+
     if (result) {
       return {
         code: 200,
@@ -398,7 +357,4 @@ class AuthController extends Controller {
 }
 
 const userService = User.getInstance('User');
-// const userDeviceService = UserDevice.getInstance('UserDevice');
-// const tokenService = Token.getInstance('Token');
-
 export default new AuthController(userService);

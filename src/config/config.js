@@ -9,20 +9,18 @@ export const APP_PORT = Number(process.env.APP_PORT) || 4060;
 export const DB_PORT = Number(process.env.DB_PORT);
 export const DB_SYNC = process.env.DB_SYNC === 'true';
 export const DB_QUERY_LOG = process.env.DB_QUERY_LOG === 'true';
+export const MEMORY_USAGE_LOG = process.env.MEMORY_USAGE_LOG === 'true';
 export const DATA_PER_PAGE = Number(process.env.DATA_PER_PAGE) || 20;
 
-export const BLOCK_LOGIN_ATTEMPTS =
-  Number(process.env.BLOCK_LOGIN_ATTEMPTS) || 5;
+export const BLOCK_LOGIN_ATTEMPTS = Number(process.env.BLOCK_LOGIN_ATTEMPTS) || 5;
 export const RESET_PASSWORD_TOKEN_EXPIRES_IN =
   Number(process.env.RESET_PASSWORD_TOKEN_EXPIRES_IN) || 43800;
-export const SIGNIN_TOKEN_EXPIRES_IN =
-  Number(process.env.SIGNIN_TOKEN_EXPIRES_IN) || 43800;
+export const SIGNIN_TOKEN_EXPIRES_IN = Number(process.env.SIGNIN_TOKEN_EXPIRES_IN) || 43800;
 export const VERIFICATION_TOKEN_EXPIRES_IN =
   Number(process.env.VERIFICATION_TOKEN_EXPIRES_IN) || 43800;
 
 export const MAX_REQUEST_LIMIT = Number(process.env.MAX_REQUEST_LIMIT) || 100;
-export const MAX_REQUEST_IN_TIME =
-  Number(process.env.MAX_REQUEST_IN_TIME) || 60 * 60 * 1000;
+export const MAX_REQUEST_IN_TIME = Number(process.env.MAX_REQUEST_IN_TIME) || 60 * 60 * 1000;
 
 export const EMAIL_PORT = Number(process.env.EMAIL_PORT) || 2525;
 export const EMAIL_SMTP_SECURE = process.env.EMAIL_SMTP_SECURE === 'true';
@@ -30,8 +28,7 @@ export const EMAIL_SMTP_SECURE = process.env.EMAIL_SMTP_SECURE === 'true';
 export const IS_OTP_BASE_SIGNIN = process.env.IS_OTP_BASE_SIGNIN === 'true';
 export const MULTI_LOGIN = process.env.MULTI_LOGIN === 'true';
 
-export const SENTRY_TRACES_SAMPLE_RATE =
-  parseFloat(process.env.SENTRY_TRACES_SAMPLE_RATE) || 1.0;
+export const SENTRY_TRACES_SAMPLE_RATE = parseFloat(process.env.SENTRY_TRACES_SAMPLE_RATE) || 1.0;
 
 export const REDIS_PORT = Number(process.env.REDIS_PORT) || 6379;
 

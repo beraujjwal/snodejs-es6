@@ -79,7 +79,6 @@ Permission.init(
     },
     slug: {
       type: DataTypes.STRING,
-      allowNull: false,
       unique: true,
       validate: {
         isLowercase: true,
@@ -89,8 +88,7 @@ Permission.init(
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: true,
-      comment:
-        'This column is for checking if the permission is active or not.',
+      comment: 'This column is for checking if the permission is active or not.',
     },
   },
   {
@@ -118,7 +116,7 @@ Permission.init(
       { name: 'idx_acl_permissions_status', fields: ['status'] },
     ],
     hooks: {
-      beforeValidate: async (model, options) => {},
+      // beforeValidate: async (model, options) => {},
     },
   }
 );

@@ -7,7 +7,7 @@ import Menu from '../services/menu.service.js';
 
 class menusController extends Controller {
   /**
-   * Controller constructor
+   * @description Menu controller constructor
    * @author Ujjwal Bera
    * @param  {service} service - Service layer object
    */

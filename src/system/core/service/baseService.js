@@ -18,6 +18,7 @@ class BaseService extends Base {
     this.model = this.getModel(model);
     this.name = model;
     this.instances = {};
+    this.modelInstances = {};
   }
 
   /**
@@ -140,13 +141,7 @@ class BaseService extends Base {
    */
   async findOne(
     query,
-    {
-      filter = null,
-      include = [],
-      attributes,
-      transaction,
-      order = ['createdAt', 'DESC'],
-    } = {}
+    { filter = null, include = [], attributes, transaction, order = ['createdAt', 'DESC'] } = {}
   ) {
     try {
       attributes = attributes || BaseService.getModelAttributes(this.model);
@@ -245,13 +240,30 @@ class BaseService extends Base {
             // Array.isArray(relationData.associationAsKey) &&
             relationData[associationAsKey].length > 0
           ) {
-            item[association.accessors.set] = await item[
-              association.accessors.set
-            ](relationData[associationAsKey], {
-              transaction,
-              individualHooks: true,
-              userID: parseInt(user.id),
-            });
+            item[association.accessors.set] = await item[association.accessors.set](
+              relationData[associationAsKey],
+              {
+                transaction,
+                individualHooks: true,
+                userID: parseInt(user.id),
+              }
+            );
+          }
+        } else if (association.type === 'HasMany') {
+          const associationAsKey = Base.toSnakeCasePluralize(association.as);
+          if (
+            relationData.hasOwnProperty(associationAsKey) &&
+            Array.isArray(relationData[associationAsKey]) &&
+            relationData[associationAsKey].length > 0
+          ) {
+            item[association.accessors.set] = await item[association.accessors.set](
+              relationData[associationAsKey],
+              {
+                transaction,
+                individualHooks: true,
+                userID: parseInt(user.id),
+              }
+            );
           }
         }
       }
@@ -305,16 +317,11 @@ class BaseService extends Base {
    * @returns {Promise<object>} The updated record
    * @throws {BaseError} If the record is not found or if there is an error in the update query
    */
-  async update(
-    query,
-    data,
-    { filter = null, transaction, user, returning = true } = {}
-  ) {
+  async update(query, data, { filter = null, transaction, user, returning = true } = {}) {
     try {
       filter = filter || BaseService.generateQueryFilterFromQueryParams(query);
       const dbItem = await this.findOne(null, { filter, transaction });
-      if (!dbItem)
-        throw new BaseError(`Error fetching ${this.name} details.`, 500);
+      if (!dbItem) throw new BaseError(`Error fetching ${this.name} details.`, 500);
 
       const modelAttributes = BaseService.getModelAttributes(this.model);
       const finalData = Object.fromEntries(
@@ -349,7 +356,13 @@ class BaseService extends Base {
             relationData[associationAsKey].length > 0
           ) {
             for (const item of rows) {
-              await item[association.accessors.remove](
+              await item[association.accessors.remove](relationData[associationAsKey], {
+                transaction,
+                individualHooks: true,
+                userID: parseInt(user.id),
+              });
+
+              item[association.accessors.set] = await item[association.accessors.set](
                 relationData[associationAsKey],
                 {
                   transaction,
@@ -357,14 +370,6 @@ class BaseService extends Base {
                   userID: parseInt(user.id),
                 }
               );
-
-              item[association.accessors.set] = await item[
-                association.accessors.set
-              ](relationData[associationAsKey], {
-                transaction,
-                individualHooks: true,
-                userID: parseInt(user.id),
-              });
             }
           }
         }
@@ -428,8 +433,7 @@ class BaseService extends Base {
     try {
       filter = filter || BaseService.generateQueryFilterFromQueryParams(query);
       const dbItems = await this.findAll(null, { filter, transaction });
-      if (!dbItems)
-        throw new BaseError(`Error fetching ${this.name} details.`, 500);
+      if (!dbItems) throw new BaseError(`Error fetching ${this.name} details.`, 500);
       if (dbItems.count < 1) throw new BaseError(`No ${this.name} found.`, 404);
 
       const modelAttributes = BaseService.getModelAttributes(this.model);
@@ -474,7 +478,13 @@ class BaseService extends Base {
             relationData[associationAsKey].length > 0
           ) {
             for (const item of results) {
-              await item[association.accessors.remove](
+              await item[association.accessors.remove](relationData[associationAsKey], {
+                transaction,
+                individualHooks: true,
+                userID: parseInt(user.id),
+              });
+
+              item[association.accessors.set] = await item[association.accessors.set](
                 relationData[associationAsKey],
                 {
                   transaction,
@@ -482,14 +492,6 @@ class BaseService extends Base {
                   userID: parseInt(user.id),
                 }
               );
-
-              item[association.accessors.set] = await item[
-                association.accessors.set
-              ](relationData[associationAsKey], {
-                transaction,
-                individualHooks: true,
-                userID: parseInt(user.id),
-              });
             }
           }
         }
@@ -559,9 +561,7 @@ class BaseService extends Base {
       filter = filter || BaseService.generateQueryFilterFromQueryParams(query);
       const dbItem = await this.findOne(null, { filter, transaction });
 
-      Object.keys(data).forEach(
-        (key) => data[key] === undefined && delete data[key]
-      );
+      Object.keys(data).forEach((key) => data[key] === undefined && delete data[key]);
       if (!dbItem) {
         return await this.createOne(data, { transaction, user });
       }
@@ -599,8 +599,7 @@ class BaseService extends Base {
     try {
       filter = filter || BaseService.generateQueryFilterFromQueryParams(query);
       const dbItem = await this.findOne(null, { filter, transaction, user });
-      if (!dbItem)
-        throw new BaseError(`Error in fetching ${this.name} details.`, 500);
+      if (!dbItem) throw new BaseError(`Error in fetching ${this.name} details.`, 500);
       await this.model.destroy({
         where: filter,
         transaction,
@@ -652,8 +651,7 @@ class BaseService extends Base {
       const filters = Object.entries(query).reduce((acc, [field, value]) => {
         if (!value) return acc;
         if (field === 'ids') acc.push({ id: value.split(',') });
-        else if (field === 'keyword')
-          acc.push({ name: { [Op.like]: `%${value}%` } });
+        else if (field === 'keyword') acc.push({ name: { [Op.like]: `%${value}%` } });
         else if (!isNaN(value)) acc.push({ [field]: Number(value) });
         else if (['true', 'false'].includes(value.toLowerCase()))
           acc.push({ [field]: value.toLowerCase() === 'true' });
@@ -663,10 +661,7 @@ class BaseService extends Base {
       return { [Op.and]: filters };
     } catch (ex) {
       if (this.getEnv('APP_DEBUG')) error(ex);
-      throw new BaseError(
-        ex.message || 'Error generating query.',
-        ex.statusCode || ex.code || 400
-      );
+      throw new BaseError(ex.message || 'Error generating query.', ex.statusCode || ex.code || 400);
     }
   }
 
@@ -675,8 +670,7 @@ class BaseService extends Base {
       const filters = [];
 
       for (const [field, rawValue] of Object.entries(query)) {
-        if (rawValue === undefined || rawValue === null || rawValue === '')
-          continue;
+        if (rawValue === undefined || rawValue === null || rawValue === '') continue;
 
         const value = String(rawValue).trim();
 
@@ -718,10 +712,7 @@ class BaseService extends Base {
       return filters.length ? { [Op.and]: filters } : {};
     } catch (ex) {
       if (this.getEnv?.('APP_DEBUG')) error(ex);
-      throw new BaseError(
-        ex.message || 'Error generating query.',
-        ex.statusCode || ex.code || 400
-      );
+      throw new BaseError(ex.message || 'Error generating query.', ex.statusCode || ex.code || 400);
     }
   }
 
