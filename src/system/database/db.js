@@ -1,7 +1,7 @@
 'use strict';
 import { Sequelize } from 'sequelize';
 import config from '../../config/db.config.js';
-import { info, warn } from '../../helpers/logger.js';
+import { info, warn, slowQuery } from '../../helpers/logger.js';
 
 const sequelize = new Sequelize(config.name, config.username, config.password, {
   host: config.host,
@@ -10,8 +10,9 @@ const sequelize = new Sequelize(config.name, config.username, config.password, {
   benchmark: true,
   logging: config.logging
     ? (sql, timing) => {
-        if (timing > 10) {
+        if (timing > config.slowQueryTime) {
           warn(`⚠️  SQL Executed - ${sql} - [${timing}ms]`);
+          slowQuery(`SQL: ${sql} - [${timing}ms]`);
         } else {
           info(`📝  SQL Executed - ${sql} - [${timing}ms]`);
         }

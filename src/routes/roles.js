@@ -15,18 +15,12 @@ const router = express.Router();
 router.group('/v1.0', (router) => {
   router.get(
     '/roles',
-    [
-      AuthMiddleware.verifyToken,
-      AclMiddleware.hasPermission('listView', 'role-section'),
-    ],
+    [AuthMiddleware.verifyToken, AclMiddleware.hasPermission('listView', 'role-section')],
     exceptionHandler(RolesController.rolesList)
   );
   router.get(
     '/roles-ddl',
-    [
-      AuthMiddleware.verifyToken,
-      AclMiddleware.hasPermission('dropDownList', 'role-section'),
-    ],
+    [AuthMiddleware.verifyToken, AclMiddleware.hasPermission('dropDownList', 'role-section')],
     exceptionHandler(RolesController.rolesDDLList)
   );
 
@@ -62,10 +56,7 @@ router.group('/v1.0', (router) => {
 
     router.delete(
       '/:id',
-      [
-        AuthMiddleware.verifyToken,
-        AclMiddleware.hasPermission('deleteExisting', 'role-section'),
-      ],
+      [AuthMiddleware.verifyToken, AclMiddleware.hasPermission('deleteExisting', 'role-section')],
       exceptionHandler(RolesController.roleDelete)
     );
   });

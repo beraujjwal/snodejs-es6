@@ -1,15 +1,12 @@
 'use strict';
 import moment from 'moment';
-import jwt from 'jsonwebtoken';
 import { Op } from 'sequelize';
 import { BaseError } from '../../system/core/error/baseError.js';
 import Service from './service.js';
 
 import { generateOTP } from '../../helpers/utility.js';
-
 import { sentOTPMail } from '../../libraries/email.library.js';
 import { sentOTPSMS } from '../../libraries/sms.library.js';
-import { decrypt } from '../../helpers/encodeDecode.js';
 
 class Token extends Service {
   /**
@@ -22,6 +19,7 @@ class Token extends Service {
   constructor(model) {
     super(model);
     this.model = this.getModel(model);
+    this.modelInstances[model] = this.model;
     this.name = model;
     this.regexEmail = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
   }

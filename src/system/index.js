@@ -16,7 +16,7 @@ import { errorResponse } from './core/helpers/apiResponse.js';
 import limiter from '../config/rateLimit.config.js';
 import router from './route/index.js';
 import { info, error } from '../helpers/logger.js';
-import { startDBListener } from './database/dbListener.js';
+import { startDBListener } from '../events/DBEvents/dbEventsListener.js';
 import { workerLoop } from '../jobs/index.js';
 import deepTrim from './core/middleware/deepTrimming.js';
 

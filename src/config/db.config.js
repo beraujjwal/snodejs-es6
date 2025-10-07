@@ -8,6 +8,7 @@ import {
   DB_PASSWORD,
   DB_SYNC,
   DB_QUERY_LOG,
+  SLOW_QUERY_TIME,
 } from './config.js';
 
 export default {
@@ -19,4 +20,5 @@ export default {
   password: DB_PASSWORD,
   sync: DB_SYNC,
   logging: DB_QUERY_LOG,
+  slowQueryTime: SLOW_QUERY_TIME,
 };

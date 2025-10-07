@@ -14,6 +14,7 @@ class Menu extends Service {
   constructor(model) {
     super(model);
     this.model = this.getModel(model);
+    this.modelInstances[model] = this.model;
     this.name = model;
   }
 

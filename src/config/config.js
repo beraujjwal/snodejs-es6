@@ -11,6 +11,7 @@ export const DB_SYNC = process.env.DB_SYNC === 'true';
 export const DB_QUERY_LOG = process.env.DB_QUERY_LOG === 'true';
 export const MEMORY_USAGE_LOG = process.env.MEMORY_USAGE_LOG === 'true';
 export const DATA_PER_PAGE = Number(process.env.DATA_PER_PAGE) || 20;
+export const SLOW_QUERY_TIME = Number(process.env.SLOW_QUERY_TIME) || 10;
 
 export const BLOCK_LOGIN_ATTEMPTS = Number(process.env.BLOCK_LOGIN_ATTEMPTS) || 5;
 export const RESET_PASSWORD_TOKEN_EXPIRES_IN =

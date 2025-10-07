@@ -12,6 +12,7 @@ if (!fs.existsSync(logDir)) {
 }
 
 const logPath = path.join(logDir, `app-custom-${todayFormat}.log`);
+const slowQueryLogPath = path.join(logDir, `slow-query-${todayFormat}.log`);
 
 // Rotate if > 1MB
 function rotateLog() {
@@ -53,7 +54,16 @@ function write(level, message) {
   logStdout.write(formatted);
 }
 
+const slowQueryLogFile = fs.createWriteStream(slowQueryLogPath, { flags: 'a' });
+function slowQueryWrite(level, message) {
+  const timestamp = new Date().toISOString();
+  const formatted = `[${timestamp}] [${level}] ${util.format(message)}\n`;
+
+  slowQueryLogFile.write(formatted);
+}
+
 export const info = (...args) => write('INFO', args.join(' '));
 export const warn = (...args) => write('WARN', args.join(' '));
 export const error = (...args) => write('ERROR', args.join(' '));
 export const debug = (...args) => write('DEBUG', args.join(' '));
+export const slowQuery = (...args) => slowQueryWrite('SLOW', args.join(' '));

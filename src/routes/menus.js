@@ -15,55 +15,40 @@ const router = express.Router();
 router.group('/v1.0', (router) => {
   router.get(
     '/menus',
-    [
-      AuthMiddleware.verifyToken,
-      AclMiddleware.hasPermission('read', 'menus'),
-    ],
+    [AuthMiddleware.verifyToken, AclMiddleware.hasPermission('read', 'menus')],
     exceptionHandler(MenusController.menusList)
   );
-  router.group(
-    '/menu',
-    AuthMiddleware.verifyToken,
-    (router) => {
-      router.post(
-        '',
-        [
-          AclMiddleware.hasPermission('create', 'menus'),
-          menuValidation.create,
-        ],
-        exceptionHandler(MenusController.menuStore)
-      );
+  router.group('/menu', AuthMiddleware.verifyToken, (router) => {
+    router.post(
+      '',
+      [AclMiddleware.hasPermission('create', 'menus'), menuValidation.create],
+      exceptionHandler(MenusController.menuStore)
+    );
 
-      router.get(
-        '/:id',
-        [AclMiddleware.hasPermission('read', 'menus')],
-        exceptionHandler(MenusController.menuDetails)
-      );
+    router.get(
+      '/:id',
+      [AclMiddleware.hasPermission('read', 'menus')],
+      exceptionHandler(MenusController.menuDetails)
+    );
 
-      router.put(
-        '/:id',
-        [
-          AclMiddleware.hasPermission('update', 'menus'),
-          menuValidation.update,
-        ],
-        exceptionHandler(MenusController.menuUpdate)
-      );
+    router.put(
+      '/:id',
+      [AclMiddleware.hasPermission('update', 'menus'), menuValidation.update],
+      exceptionHandler(MenusController.menuUpdate)
+    );
 
-      router.patch(
-        '/:id',
-        [
-          AclMiddleware.hasPermission('update', 'menus')
-        ],
-        exceptionHandler(MenusController.menuStatusUpdate)
-      );
+    router.patch(
+      '/:id',
+      [AclMiddleware.hasPermission('update', 'menus')],
+      exceptionHandler(MenusController.menuStatusUpdate)
+    );
 
-      router.delete(
-        '/:id',
-        [AclMiddleware.hasPermission('delete', 'menus')],
-        exceptionHandler(MenusController.menuDelete)
-      );
-    }
-  );
+    router.delete(
+      '/:id',
+      [AclMiddleware.hasPermission('delete', 'menus')],
+      exceptionHandler(MenusController.menuDelete)
+    );
+  });
 });
 
 export default router;
