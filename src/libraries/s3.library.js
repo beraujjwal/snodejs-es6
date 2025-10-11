@@ -11,6 +11,7 @@ import {
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import mime from 'mime-types';
+import archiver from 'archiver';
 
 import client from '../helpers/s3.js';
 import config from '../config/s3.config.js';
@@ -29,7 +30,7 @@ const streamToString = async (stream) =>
     stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
   });
 
-export const downloadFile = async (bucket = config.bucketName, key) => {
+export const downloadFile = async (key, bucket = config.bucketName) => {
   try {
     const params = {
       Bucket: bucket,
@@ -44,15 +45,9 @@ export const downloadFile = async (bucket = config.bucketName, key) => {
   }
 };
 
-export const downloadS3File = async (bucket = config.bucketName, key, path = './temp') => {
+export const downloadS3File = async (key, path = './temp', bucket = config.bucketName) => {
   try {
-    const params = {
-      Bucket: bucket,
-      Key: key,
-    };
-
-    const command = new GetObjectCommand(params);
-    const { Body } = await client.send(command);
+    const Body = await downloadFile(key, bucket);
     const downloadPath = `${path}/${key}`;
     const outputStream = fs.createWriteStream(downloadPath);
     await Body.pipe(outputStream);
@@ -301,8 +296,7 @@ export const uploadHtmlEmailBodyToS3 = async (htmlContent, path, bucket = config
 };
 
 export const getHtmlFromS3 = async (key, bucket = config.bucketName) => {
-  const command = new GetObjectCommand({ Bucket: bucket, Key: key });
-  const { Body } = await client.send(command);
+  const Body = await downloadFile(key, bucket);
   return await streamToString(Body);
 };
 
@@ -339,4 +333,28 @@ export const deleteLocalFile = async (filePath) => {
     error('Delete error:', ex);
     throw ex;
   }
+};
+
+export const downloadFilesAsZip = async (
+  files,
+  outputZipFile = 'download.zip',
+  options = { deleteLocal: true, bucket: config.bucketName }
+) => {
+  const outputZipPath = path.join(tmpDir, outputZipFile);
+  // Create output stream
+  const output = fs.createWriteStream(outputZipPath);
+  const archive = archiver('zip', { zlib: { level: 9 } });
+
+  archive.pipe(output);
+
+  // Add each S3 file as a stream to the zip
+  for (const key of files) {
+    const Body = await downloadFile(key, options.bucket);
+
+    // Append stream directly to zip without writing locally
+    archive.append(Body, { name: key.split('/').pop() });
+  }
+
+  await archive.finalize();
+  console.log(`✅ Zip file created: ${outputZipPath}`);
 };

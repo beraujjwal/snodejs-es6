@@ -46,6 +46,7 @@
     "@babel/cli": "^7.28.0",
     "@elastic/elasticsearch": "^9.1.0",
     "@sentry/node": "^10.0.0",
+    "archiver": "^7.0.1",
     "auto-bind": "^5.0.1",
     "axios": "^1.11.0",
     "bcryptjs": "^3.0.2",
