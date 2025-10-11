@@ -122,7 +122,7 @@ async function up({ context: queryInterface }) {
 
 async function down({ context: queryInterface }) {
   const transaction = await queryInterface.sequelize.transaction();
-  const dbName = queryInterface.sequelize.getDialect();
+  // const dbName = queryInterface.sequelize.getDialect();
   try {
     await queryInterface.removeIndex('gnrl_cities', 'idx_gnrl_cities_name', {
       transaction,

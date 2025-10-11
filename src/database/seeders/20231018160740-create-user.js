@@ -6,7 +6,7 @@ const saltRounds = parseInt(process.env.SALT_FACTOR);
 async function up({ context: queryInterface }) {
   const dbName = queryInterface.sequelize.getDialect();
   const salt = await bcrypt.genSalt(saltRounds);
-  const restPassword = bcrypt.hashSync('123456789', salt);
+  // const restPassword = bcrypt.hashSync('123456789', salt);
   await queryInterface
     .bulkInsert(
       'gnrl_users',
@@ -52,9 +52,9 @@ async function up({ context: queryInterface }) {
       ],
       {}
     )
-    .catch((ex) => {
-      console.error(ex);
-      throw ex;
+    .catch((error) => {
+      console.error(error);
+      throw error;
     });
 
   if (dbName === 'postgres') {
@@ -65,9 +65,9 @@ async function up({ context: queryInterface }) {
 }
 
 async function down({ context: queryInterface }) {
-  await queryInterface.bulkDelete('gnrl_users', null, {}).catch((ex) => {
-    console.error(ex);
-    throw ex;
+  await queryInterface.bulkDelete('gnrl_users', null, {}).catch((error) => {
+    console.error(error);
+    throw error;
   });
 }
 

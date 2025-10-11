@@ -182,30 +182,19 @@ async function down({ context: queryInterface }) {
   const transaction = await queryInterface.sequelize.transaction();
   const dbName = queryInterface.sequelize.getDialect();
   try {
-    await queryInterface.removeIndex(
-      'gnrl_regions',
-      'idx_unique_gnrl_regions_slug',
-      {
-        transaction,
-      }
-    );
+    await queryInterface.removeIndex('gnrl_regions', 'idx_unique_gnrl_regions_slug', {
+      transaction,
+    });
     await queryInterface.removeIndex('gnrl_regions', 'idx_gnrl_regions_name', {
       transaction,
     });
-    await queryInterface.removeIndex(
-      'gnrl_regions',
-      'idx_gnrl_regions_status',
-      {
-        transaction,
-      }
-    );
+    await queryInterface.removeIndex('gnrl_regions', 'idx_gnrl_regions_status', {
+      transaction,
+    });
     if (dbName === 'mysql') {
-      await queryInterface.sequelize.query(
-        `DROP TRIGGER IF EXISTS alter_gnrl_regions_on_delete;`,
-        {
-          transaction,
-        }
-      );
+      await queryInterface.sequelize.query(`DROP TRIGGER IF EXISTS alter_gnrl_regions_on_delete;`, {
+        transaction,
+      });
     } else if (dbName === 'postgres') {
       await queryInterface.sequelize.query(
         `DROP TRIGGER IF EXISTS trg_audit_logs_for_gnrl_regions ON gnrl_regions;`,

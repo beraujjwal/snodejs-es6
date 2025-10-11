@@ -5,6 +5,7 @@ import fs from 'fs';
 import handlebars from 'handlebars';
 
 import { browser } from '../helpers/puppeteer.js';
+import { error } from '../helpers/logger.js';
 
 import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -37,6 +38,6 @@ export const generatePDF = async (data, templatePath, pdfFileName) => {
     // Close the browser instance
     await browser.close();
   } catch (ex) {
-    console.log(ex);
+    error(ex);
   }
 };

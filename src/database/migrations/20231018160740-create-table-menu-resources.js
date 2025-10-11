@@ -99,15 +99,11 @@ async function up({ context: queryInterface }) {
 
 async function down({ context: queryInterface }) {
   const transaction = await queryInterface.sequelize.transaction();
-  const dbName = queryInterface.sequelize.getDialect();
+  // const dbName = queryInterface.sequelize.getDialect();
   try {
-    await queryInterface.removeIndex(
-      'acl_menu_resources',
-      'idx_unique_acl_menu_resources_fks',
-      {
-        transaction,
-      }
-    );
+    await queryInterface.removeIndex('acl_menu_resources', 'idx_unique_acl_menu_resources_fks', {
+      transaction,
+    });
     await queryInterface.dropTable('acl_menu_resources', {
       transaction,
     });

@@ -103,7 +103,10 @@ class BaseService extends Base {
           where: filter,
           transaction,
         }),
-      ]);
+      ]).catch((err) => {
+        error(err);
+        return [null, 0]; // return fallback value if needed
+      });
       //const rowsData = rows.map((item) => item.toJSON());
 
       return {
@@ -236,7 +239,7 @@ class BaseService extends Base {
         if (association.type === 'BelongsToMany') {
           const associationAsKey = Base.toSnakeCasePluralize(association.as);
           if (
-            relationData.hasOwnProperty(associationAsKey) &&
+            Object.hasOwn(relationData, associationAsKey) &&
             // Array.isArray(relationData.associationAsKey) &&
             relationData[associationAsKey].length > 0
           ) {
@@ -252,7 +255,7 @@ class BaseService extends Base {
         } else if (association.type === 'HasMany') {
           const associationAsKey = Base.toSnakeCasePluralize(association.as);
           if (
-            relationData.hasOwnProperty(associationAsKey) &&
+            Object.hasOwn(relationData, associationAsKey) &&
             Array.isArray(relationData[associationAsKey]) &&
             relationData[associationAsKey].length > 0
           ) {
@@ -351,7 +354,7 @@ class BaseService extends Base {
         if (association.type === 'BelongsToMany') {
           const associationAsKey = Base.toSnakeCasePluralize(association.as);
           if (
-            relationData.hasOwnProperty(associationAsKey) &&
+            Object.hasOwn(relationData, associationAsKey) &&
             // Array.isArray(relationData.associationAsKey) &&
             relationData[associationAsKey].length > 0
           ) {
@@ -466,14 +469,17 @@ class BaseService extends Base {
             userID: parseInt(user.id),
           })
         )
-      );
+      ).catch((err) => {
+        error(err);
+        return null; // return fallback value if needed
+      });
 
       const associations = await this.getModelAssociations(this.model);
       for (const association of associations) {
         if (association.type === 'BelongsToMany') {
           const associationAsKey = Base.toSnakeCasePluralize(association.as);
           if (
-            relationData.hasOwnProperty(associationAsKey) &&
+            Object.hasOwn(relationData, associationAsKey) &&
             // Array.isArray(relationData.associationAsKey) &&
             relationData[associationAsKey].length > 0
           ) {

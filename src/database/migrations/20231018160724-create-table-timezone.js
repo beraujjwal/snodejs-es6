@@ -258,34 +258,18 @@ async function down({ context: queryInterface }) {
   const transaction = await queryInterface.sequelize.transaction();
   const dbName = queryInterface.sequelize.getDialect();
   try {
-    await queryInterface.removeIndex(
-      'gnrl_timezones',
-      'idx_gnrl_timezones_name',
-      {
-        transaction,
-      }
-    );
-    await queryInterface.removeIndex(
-      'gnrl_timezones',
-      'idx_unique_gnrl_timezones_code',
-      {
-        transaction,
-      }
-    );
-    await queryInterface.removeIndex(
-      'gnrl_timezones',
-      'idx_gnrl_timezones_utc',
-      {
-        transaction,
-      }
-    );
-    await queryInterface.removeIndex(
-      'gnrl_timezones',
-      'idx_gnrl_timezones_status',
-      {
-        transaction,
-      }
-    );
+    await queryInterface.removeIndex('gnrl_timezones', 'idx_gnrl_timezones_name', {
+      transaction,
+    });
+    await queryInterface.removeIndex('gnrl_timezones', 'idx_unique_gnrl_timezones_code', {
+      transaction,
+    });
+    await queryInterface.removeIndex('gnrl_timezones', 'idx_gnrl_timezones_utc', {
+      transaction,
+    });
+    await queryInterface.removeIndex('gnrl_timezones', 'idx_gnrl_timezones_status', {
+      transaction,
+    });
     if (dbName === 'mysql') {
       await queryInterface.sequelize.query(
         `DROP TRIGGER IF EXISTS alter_gnrl_timezones_on_delete;`,

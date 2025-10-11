@@ -4,11 +4,13 @@ import prettier from 'eslint-plugin-prettier';
 
 export default [
   js.configs.recommended, // base ESLint rules
+  // {
+  //   ignores: ['node_modules/**', 'dist/**', 'src/system/**'], // ✅ move here
+  // },
   {
-    ignores: ['node_modules/**', 'dist/**', 'src/system/**'], // ✅ move here
-  },
-  {
-    files: ['src/**/*.js'], // ✅ applies only to src js files (excluding ignores)
+    // files: ['src/**/*.js'], // ✅ applies only to src js files (excluding ignores)
+    files: ['**/*.js'],
+    ignores: ['node_modules/**', 'dist/**'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',

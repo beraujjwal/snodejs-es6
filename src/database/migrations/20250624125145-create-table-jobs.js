@@ -122,7 +122,6 @@ async function up({ context: queryInterface }) {
 
     await transaction.commit();
   } catch (ex) {
-    console.error(ex);
     await transaction.rollback();
     throw ex;
   }

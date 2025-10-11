@@ -2,15 +2,17 @@
 import 'dotenv/config';
 
 import { sendSMS } from '../helpers/sms.js';
+import { error } from '../helpers/logger.js';
 
 export const sentOTPSMS = function (email, token) {
   try {
     const smsOptions = {
-      otpCode: 100533,
+      email: email,
+      otpCode: token,
     };
 
     sendSMS(smsOptions);
   } catch (ex) {
-    console.log(ex);
+    error(ex);
   }
 };

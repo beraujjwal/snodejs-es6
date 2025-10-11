@@ -20,12 +20,8 @@ class AclMiddleware extends Middleware {
    * @returns
    */
   hasPermission(action, module) {
-    const roleResourcePermissionView = this.getModel(
-      'RoleResourcePermissionView'
-    );
-    const userResourcePermissionView = this.getModel(
-      'UserResourcePermissionView'
-    );
+    const roleResourcePermissionView = this.getModel('RoleResourcePermissionView');
+    const userResourcePermissionView = this.getModel('UserResourcePermissionView');
 
     return async function (req, res, next) {
       try {
@@ -57,9 +53,7 @@ class AclMiddleware extends Middleware {
 
         if (userResourcePermission.length > 0) {
           const hasFullDeny = userResourcePermission.some(
-            (perm) =>
-              perm.permissionSlug === 'full-deny' &&
-              perm.resourceSlug === module
+            (perm) => perm.permissionSlug === 'full-deny' && perm.resourceSlug === module
           );
 
           if (hasFullDeny) haveAccess = false;

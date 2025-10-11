@@ -31,8 +31,8 @@ async function convertPdfToImage(pdfPath) {
     console.log('✅ Thumbnail created at:', thumbPath);
 
     return { imagePath, thumbPath };
-  } catch (error) {
-    console.error('❌ Error:', error.message);
+  } catch (ex) {
+    console.error('❌ Error:', ex.message);
   }
 }
 

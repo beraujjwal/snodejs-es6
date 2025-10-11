@@ -180,21 +180,13 @@ async function down({ context: queryInterface }) {
   const transaction = await queryInterface.sequelize.transaction();
   const dbName = queryInterface.sequelize.getDialect();
   try {
-    await queryInterface.removeIndex(
-      'acl_permissions',
-      'idx_unique_acl_permissions_slug',
-      {
-        transaction,
-      }
-    );
+    await queryInterface.removeIndex('acl_permissions', 'idx_unique_acl_permissions_slug', {
+      transaction,
+    });
 
-    await queryInterface.removeIndex(
-      'acl_permissions',
-      'idx_acl_permissions_name',
-      {
-        transaction,
-      }
-    );
+    await queryInterface.removeIndex('acl_permissions', 'idx_acl_permissions_name', {
+      transaction,
+    });
 
     if (dbName === 'mysql') {
       await queryInterface.sequelize.query(

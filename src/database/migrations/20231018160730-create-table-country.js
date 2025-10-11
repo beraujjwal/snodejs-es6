@@ -238,43 +238,23 @@ async function up({ context: queryInterface }) {
 
 async function down({ context: queryInterface }) {
   const transaction = await queryInterface.sequelize.transaction();
-  const dbName = queryInterface.sequelize.getDialect();
+  // const dbName = queryInterface.sequelize.getDialect();
   try {
-    await queryInterface.removeIndex(
-      'gnrl_countries',
-      'idx_gnrl_countries_name',
-      {
-        transaction,
-      }
-    );
-    await queryInterface.removeIndex(
-      'gnrl_countries',
-      'idx_unique_gnrl_countries_iso2',
-      {
-        transaction,
-      }
-    );
-    await queryInterface.removeIndex(
-      'gnrl_countries',
-      'idx_unique_gnrl_countries_iso3',
-      {
-        transaction,
-      }
-    );
-    await queryInterface.removeIndex(
-      'gnrl_countries',
-      'idx_gnrl_countries_phone_code',
-      {
-        transaction,
-      }
-    );
-    await queryInterface.removeIndex(
-      'gnrl_countries',
-      'idx_gnrl_countries_numeric_code',
-      {
-        transaction,
-      }
-    );
+    await queryInterface.removeIndex('gnrl_countries', 'idx_gnrl_countries_name', {
+      transaction,
+    });
+    await queryInterface.removeIndex('gnrl_countries', 'idx_unique_gnrl_countries_iso2', {
+      transaction,
+    });
+    await queryInterface.removeIndex('gnrl_countries', 'idx_unique_gnrl_countries_iso3', {
+      transaction,
+    });
+    await queryInterface.removeIndex('gnrl_countries', 'idx_gnrl_countries_phone_code', {
+      transaction,
+    });
+    await queryInterface.removeIndex('gnrl_countries', 'idx_gnrl_countries_numeric_code', {
+      transaction,
+    });
     await queryInterface.dropTable('gnrl_countries', {
       transaction,
     });

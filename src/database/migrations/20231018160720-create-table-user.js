@@ -318,20 +318,12 @@ async function down({ context: queryInterface }) {
       transaction,
     });
 
-    await queryInterface.removeIndex(
-      'gnrl_users',
-      'idx_unique_gnrl_users_email',
-      {
-        transaction,
-      }
-    );
-    await queryInterface.removeIndex(
-      'gnrl_users',
-      'idx_unique_gnrl_users_phone',
-      {
-        transaction,
-      }
-    );
+    await queryInterface.removeIndex('gnrl_users', 'idx_unique_gnrl_users_email', {
+      transaction,
+    });
+    await queryInterface.removeIndex('gnrl_users', 'idx_unique_gnrl_users_phone', {
+      transaction,
+    });
     await queryInterface.removeIndex('gnrl_users', 'idx_gnrl_user_status', {
       transaction,
     });
@@ -341,20 +333,13 @@ async function down({ context: queryInterface }) {
     });
 
     if (dbName === 'mysql') {
-      await queryInterface.sequelize.query(
-        `DROP TRIGGER IF EXISTS alter_gnrl_users_on_delete;`,
-        {
-          transaction,
-        }
-      );
+      await queryInterface.sequelize.query(`DROP TRIGGER IF EXISTS alter_gnrl_users_on_delete;`, {
+        transaction,
+      });
     } else if (dbName === 'postgres') {
-      await queryInterface.removeIndex(
-        'gnrl_users',
-        'idx_gnrl_user_verified_gin',
-        {
-          transaction,
-        }
-      );
+      await queryInterface.removeIndex('gnrl_users', 'idx_gnrl_user_verified_gin', {
+        transaction,
+      });
 
       await queryInterface.sequelize.query(
         `DROP TRIGGER IF EXISTS trg_audit_logs_for_users ON gnrl_users;`,

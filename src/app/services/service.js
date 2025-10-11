@@ -28,7 +28,7 @@ class Service extends BaseService {
     try {
       return [...new Set(arr)];
     } catch (ex) {
-      throw new BaseError(ex.message);
+      throw new BaseError(ex);
     }
   }
 
@@ -48,7 +48,7 @@ class Service extends BaseService {
         await this.updateNestedStatus(children.id, newStatus, { transaction });
       }
     } catch (ex) {
-      throw new BaseError(ex.message);
+      throw new BaseError(ex);
     }
   }
 
@@ -73,7 +73,7 @@ class Service extends BaseService {
 
       return roots;
     } catch (ex) {
-      throw new BaseError(ex.message);
+      throw new BaseError(ex);
     }
   }
 
@@ -93,7 +93,7 @@ class Service extends BaseService {
         return newItem;
       });
     } catch (ex) {
-      throw new BaseError(ex.message);
+      throw new BaseError(ex);
     }
   }
 

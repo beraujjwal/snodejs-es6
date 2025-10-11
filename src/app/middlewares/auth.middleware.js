@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { Middleware } from './middleware.js';
 import { BaseError } from '../../system/core/error/baseError.js';
 import { decrypt } from '../../helpers/encodeDecode.js';
+import { error } from '../../helpers/logger.js';
 
 // Import Redis Library Here (Don't remove this line)
 
@@ -33,17 +34,16 @@ class AuthMiddleware extends Middleware {
     const { 'x-device-id': deviceId } = req.headers;
 
     try {
-      if (!bearerHeader)
-        throw new BaseError('Authorization token not found.', 401);
+      if (!bearerHeader) throw new BaseError('Authorization token not found.', 401);
 
       const token = decrypt(bearerHeader.split(' ')[1]);
-      if (!token)
-        throw new BaseError('Unauthorized to access this section.', 401);
+      if (!token) throw new BaseError('Unauthorized to access this section.', 401);
 
       let decoded;
       try {
         decoded = jwt.verify(token, this.getEnv('JWT_SECRET'));
-      } catch (err) {
+      } catch (ex) {
+        error(ex);
         throw new BaseError('Invalid authorization token.', 401);
       }
 
@@ -56,15 +56,7 @@ class AuthMiddleware extends Middleware {
       // } else {
 
       const user = await this.User.findByPk(decoded.id, {
-        attributes: [
-          'id',
-          'firstName',
-          'lastName',
-          'email',
-          'phone',
-          'status',
-          'verified',
-        ],
+        attributes: ['id', 'firstName', 'lastName', 'email', 'phone', 'status', 'verified'],
         include: [
           {
             model: this.Role,
@@ -112,8 +104,7 @@ class AuthMiddleware extends Middleware {
       if (userData === null || userData.isCompleted === false)
         throw new BaseError('Invalid authorization token.', 401);
 
-      if (!userData?.userDevice)
-        throw new BaseError('Invalid authorization token.', 401);
+      if (!userData?.userDevice) throw new BaseError('Invalid authorization token.', 401);
 
       const authorities = [];
       const roles = userData.roles;
@@ -196,7 +187,7 @@ class AuthMiddleware extends Middleware {
 
       return;
     } catch (ex) {
-      next(ex.message);
+      next(ex);
     }
   }
 }

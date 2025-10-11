@@ -2,6 +2,8 @@
 import chalk from 'chalk';
 
 import { kafka } from '../helpers/kafka.js';
+import { error } from '../helpers/logger.js';
+
 const log = console.log;
 let producer = null;
 if (kafka) {
@@ -21,10 +23,8 @@ const sendMessage = async (messageTopic, messageBody) => {
   try {
     await producer
       .connect()
-      .then((value) => log('Producer connected'))
-      .catch((err) =>
-        log(chalk.white.bgRed.bold('✘ Kafka producer connect failed!'))
-      );
+      .then((value) => log('Producer connected', value))
+      .catch((err) => log(chalk.white.bgRed.bold('✘ Kafka producer connect failed!', err)));
 
     await producer
       .send({
@@ -39,7 +39,7 @@ const sendMessage = async (messageTopic, messageBody) => {
       });
     await producer.disconnect();
   } catch (ex) {
-    log(ex);
+    error(ex);
   }
 };
 

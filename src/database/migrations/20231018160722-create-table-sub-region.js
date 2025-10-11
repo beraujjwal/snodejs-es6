@@ -191,27 +191,15 @@ async function down({ context: queryInterface }) {
   const transaction = await queryInterface.sequelize.transaction();
   const dbName = queryInterface.sequelize.getDialect();
   try {
-    await queryInterface.removeIndex(
-      'gnrl_sub_regions',
-      'idx_unique_gnrl_sub_regions_slug',
-      {
-        transaction,
-      }
-    );
-    await queryInterface.removeIndex(
-      'gnrl_sub_regions',
-      'idx_gnrl_sub_regions_name',
-      {
-        transaction,
-      }
-    );
-    await queryInterface.removeIndex(
-      'gnrl_sub_regions',
-      'idx_gnrl_sub_regions_status',
-      {
-        transaction,
-      }
-    );
+    await queryInterface.removeIndex('gnrl_sub_regions', 'idx_unique_gnrl_sub_regions_slug', {
+      transaction,
+    });
+    await queryInterface.removeIndex('gnrl_sub_regions', 'idx_gnrl_sub_regions_name', {
+      transaction,
+    });
+    await queryInterface.removeIndex('gnrl_sub_regions', 'idx_gnrl_sub_regions_status', {
+      transaction,
+    });
     if (dbName === 'mysql') {
       await queryInterface.sequelize.query(
         `DROP TRIGGER IF EXISTS alter_gnrl_sub_regions_on_delete;`,

@@ -51,8 +51,8 @@ class Role extends Service {
         code: 400,
         message: 'Role permission not found.',
       };
-    } catch (error) {
-      throw new BaseError(error);
+    } catch (ex) {
+      throw new BaseError(ex);
     }
   }
 
@@ -76,8 +76,8 @@ class Role extends Service {
         code: 400,
         message: 'Role resource not found.',
       };
-    } catch (error) {
-      throw new BaseError(error);
+    } catch (ex) {
+      throw new BaseError(ex);
     }
   }
 }

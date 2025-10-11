@@ -2,6 +2,8 @@
 import { BaseError } from '../../system/core/error/baseError.js';
 import Service from './service.js';
 
+import { error } from '../../helpers/logger.js';
+
 class WorkLog extends Service {
   /**
    * @description WorkLog service constructor
@@ -44,7 +46,7 @@ class WorkLog extends Service {
 
       return userWorkLog;
     } catch (ex) {
-      console.error(ex);
+      error(ex);
       throw new BaseError(ex);
     }
   }

@@ -138,27 +138,15 @@ async function down({ context: queryInterface }) {
   const transaction = await queryInterface.sequelize.transaction();
   const dbName = queryInterface.sequelize.getDialect();
   try {
-    await queryInterface.removeIndex(
-      'gnrl_audit_logs',
-      'idx_unique_gnrl_audit_logs_table_name',
-      {
-        transaction,
-      }
-    );
-    await queryInterface.removeIndex(
-      'gnrl_audit_logs',
-      'idx_unique_gnrl_audit_logs_operation',
-      {
-        transaction,
-      }
-    );
-    await queryInterface.removeIndex(
-      'gnrl_audit_logs',
-      'idx_unique_gnrl_audit_logs_record_id',
-      {
-        transaction,
-      }
-    );
+    await queryInterface.removeIndex('gnrl_audit_logs', 'idx_unique_gnrl_audit_logs_table_name', {
+      transaction,
+    });
+    await queryInterface.removeIndex('gnrl_audit_logs', 'idx_unique_gnrl_audit_logs_operation', {
+      transaction,
+    });
+    await queryInterface.removeIndex('gnrl_audit_logs', 'idx_unique_gnrl_audit_logs_record_id', {
+      transaction,
+    });
 
     await queryInterface.sequelize.query(
       `DROP TRIGGER IF EXISTS alter_gnrl_audit_logs_on_delete;`,
@@ -167,12 +155,9 @@ async function down({ context: queryInterface }) {
       }
     );
     if (dbName === 'postgres') {
-      await queryInterface.sequelize.query(
-        `DROP FUNCTION IF EXISTS fn_audit_logs();`,
-        {
-          transaction,
-        }
-      );
+      await queryInterface.sequelize.query(`DROP FUNCTION IF EXISTS fn_audit_logs();`, {
+        transaction,
+      });
     }
     await queryInterface.dropTable('gnrl_audit_logs', {
       transaction,

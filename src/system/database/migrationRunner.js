@@ -1,12 +1,14 @@
 'use strict';
 import 'dotenv/config';
 import path from 'path';
-import { fileURLToPath, pathToFileURL } from 'url';
+import { fileURLToPath } from 'url';
 import { Umzug, SequelizeStorage } from 'umzug';
 import { sequelize } from './db.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+import { error } from '../../helpers/logger.js';
 
 /**
  * Executes all pending migrations in the database.
@@ -23,9 +25,7 @@ const __dirname = path.dirname(__filename);
 const runMigrations = async ({ to, step, logging = false } = {}) => {
   try {
     if (!sequelize) {
-      throw new Error(
-        '❌ Sequelize instance is not initialized. Check database connection.'
-      );
+      throw new Error('❌ Sequelize instance is not initialized. Check database connection.');
     }
 
     const migrator = new Umzug({
@@ -54,8 +54,8 @@ const runMigrations = async ({ to, step, logging = false } = {}) => {
       `✅ Migrations completed:`,
       result.map((m) => m.name)
     );
-  } catch (error) {
-    console.error('❌ Migration error:', error.message);
+  } catch (ex) {
+    error('❌ Migration error:', ex.message);
     process.exitCode = 1; // safer than process.exit(1) here
   } finally {
     try {
@@ -116,15 +116,15 @@ const rollbackMigrations = async ({ to, step, logging = false } = {}) => {
       `✅ Rolled back migrations:`,
       result.map((m) => m.name)
     );
-  } catch (error) {
-    console.error('❌ Rollback error:', error.message);
+  } catch (ex) {
+    error('❌ Rollback error:', ex.message);
     process.exitCode = 1; // safer than process.exit(1)
   } finally {
     try {
       await sequelize.close();
       console.log('🔌 Database connection closed.');
-    } catch (closeError) {
-      console.error('⚠️ Error closing DB connection:', closeError);
+    } catch (ex) {
+      error('⚠️ Error closing DB connection:', ex);
     }
   }
 };
@@ -177,17 +177,17 @@ const runSeeders = async ({ to, step, logging = false } = {}) => {
       `✅ Seeders executed:`,
       result.map((s) => s.name)
     );
-  } catch (error) {
-    console.log(error);
-    console.log(error.StackTrace);
+  } catch (ex) {
+    error(ex);
+    error(ex.StackTrace);
     console.error('❌ Seeder execution error:', error.message);
     process.exitCode = 1;
   } finally {
     try {
       await sequelize.close();
       console.log('🔌 Database connection closed.');
-    } catch (closeError) {
-      console.error('⚠️ Error closing DB connection:', closeError);
+    } catch (ex) {
+      error('⚠️ Error closing DB connection:', ex);
     }
   }
 };
@@ -227,15 +227,15 @@ const rollbackSeeders = async ({ to, step, logging = false } = {}) => {
       `✅ Rolled back seeders:`,
       result.map((s) => s.name)
     );
-  } catch (error) {
-    console.error('❌ Seeder rollback error:', error.message);
+  } catch (ex) {
+    error('❌ Seeder rollback error:', ex.message);
     process.exitCode = 1;
   } finally {
     try {
       await sequelize.close();
       console.log('🔌 Database connection closed.');
-    } catch (closeError) {
-      console.error('⚠️ Error closing DB connection:', closeError);
+    } catch (ex) {
+      error('⚠️ Error closing DB connection:', ex);
     }
   }
 };

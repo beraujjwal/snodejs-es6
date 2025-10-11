@@ -16,19 +16,17 @@ if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
 
 import { BaseError } from '../system/core/error/baseError.js';
 
-export const createThumbnailFromImage = async (
-  inputPath,
-  outputPath,
-  width = 300
-) => {
+import { error } from './logger.js';
+
+export const createThumbnailFromImage = async (inputPath, outputPath, width = 300) => {
   try {
     const inputBase = path.join(tmpDir, inputPath);
     const outputBase = path.join(tmpDir, outputPath);
     await sharp(inputBase).resize({ width }).toFile(outputBase);
     console.log('✅ Thumbnail created at', outputBase);
-  } catch (err) {
-    console.error('❌ Error creating thumbnail:', err);
-    throw new BaseError(err);
+  } catch (ex) {
+    error('❌ Error creating thumbnail:', ex);
+    throw new BaseError(ex);
   }
 };
 
@@ -52,14 +50,11 @@ export const createThumbnailFromHeicImage = async (
 
     fs.writeFileSync(convertedBase, outputBuffer);
 
-    await sharp(convertedBase)
-      .resize({ width })
-      .jpeg({ quality: 90 })
-      .toFile(outputBase);
+    await sharp(convertedBase).resize({ width }).jpeg({ quality: 90 }).toFile(outputBase);
     console.log('✅ Thumbnail created at', inputPath, outputBase);
-  } catch (err) {
-    console.error('❌ Error creating thumbnail:', err);
-    throw new BaseError(err);
+  } catch (ex) {
+    error('❌ Error creating thumbnail:', ex);
+    throw new BaseError(ex);
   }
 };
 
@@ -95,9 +90,9 @@ export const createThumbnailFromPdf = async (
       .jpeg({ quality: 82 })
       .toFile(outputBase);
     console.log('✅ Thumbnail created at', outputBase);
-  } catch (err) {
-    console.error('❌ Error creating thumbnail:', err);
-    throw new BaseError(err);
+  } catch (ex) {
+    error('❌ Error creating thumbnail:', ex);
+    throw new BaseError(ex);
   }
 };
 
@@ -116,7 +111,7 @@ export const base64ToThumbnail = async (base64String, width = 400) => {
 
     return base64Thumbnail;
   } catch (ex) {
-    console.error('Thumbnail Generation Error:', ex);
+    error('Thumbnail Generation Error:', ex);
     throw ex;
   }
 };

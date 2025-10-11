@@ -1,4 +1,3 @@
-// events/index.js
 'use strict';
 import fs from 'fs';
 import path from 'path';

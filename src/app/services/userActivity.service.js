@@ -2,6 +2,8 @@
 import { BaseError } from '../../system/core/error/baseError.js';
 import Service from './service.js';
 
+import { error } from '../../helpers/logger.js';
+
 class UserActivity extends Service {
   /**
    * @description UserActivity service constructor
@@ -28,7 +30,7 @@ class UserActivity extends Service {
     try {
       await this.model.create(data, { transaction });
     } catch (ex) {
-      console.error(ex);
+      error(ex);
       throw new BaseError(ex);
     }
   }
@@ -40,7 +42,7 @@ class UserActivity extends Service {
         filter: { sessionID, status: 1 },
       });
     } catch (ex) {
-      console.error(ex);
+      error(ex);
       throw new BaseError(ex);
     }
   }

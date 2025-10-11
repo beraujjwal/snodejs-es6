@@ -4,8 +4,8 @@
 //     try {
 //         const buffer = fs.readFileSync(`${__dirname}/${file}.cypher`)
 //         return buffer.toString();
-//     } catch (err) {
-//         //console.log(err);
+//     } catch (ex) {
+//         //console.log(ex);
 //         return false;
 //     }
 // }
@@ -17,10 +17,11 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default (file) => {
-    try {
-        const buffer = fs.readFileSync(`${__dirname}/${file}.cypher`);
-        return buffer.toString();
-    } catch (err) {
-        return false;
-    }
+  try {
+    const buffer = fs.readFileSync(`${__dirname}/${file}.cypher`);
+    return buffer.toString();
+  } catch (ex) {
+    console.info(ex);
+    return false;
+  }
 };

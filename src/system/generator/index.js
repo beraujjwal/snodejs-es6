@@ -97,8 +97,8 @@ export default async function (moduleArg) {
         }
       }
     }
-  } catch (error) {
-    if (error.code === 'EEXIST') {
+  } catch (ex) {
+    if (ex.code === 'EEXIST') {
       error(chalk.redBright('Module already exists.'));
     } else {
       error(chalk.redBright(error.message));
@@ -303,8 +303,8 @@ async function createMigration(processName) {
 
     const destPath = `${CURR_DIR}/src/database/migrations`;
     return { file, destPath, contents };
-  } catch (error) {
-    error(chalk.redBright(`Error creating migration: ${error.message}`));
+  } catch (ex) {
+    error(chalk.redBright(`Error creating migration: ${ex.message}`));
     process.exit(1);
   }
 }
@@ -337,7 +337,9 @@ async function createSeeder(processName) {
 }
 
 async function createAndWriteONFile(destPath, file, contents) {
-  fs.mkdirSync(`${destPath}`, { recursive: true }, (err) => {});
+  fs.mkdirSync(`${destPath}`, { recursive: true }, (ex) => {
+    console.log(ex);
+  });
   const writePath = `${destPath}/${file}`;
   if (!fs.existsSync(writePath)) {
     fs.writeFileSync(writePath, contents, 'utf8');

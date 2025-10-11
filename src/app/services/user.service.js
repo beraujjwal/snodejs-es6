@@ -11,6 +11,8 @@ import Role from './role.service.js';
 
 import { encrypt, decrypt } from '../../helpers/encodeDecode.js';
 
+import { error } from '../../helpers/logger.js';
+
 import {
   generateOTP,
   generateToken,
@@ -110,9 +112,9 @@ class User extends Service {
         transaction,
       });
       return userExists;
-    } catch (error) {
-      console.error(error);
-      throw new BaseError(error);
+    } catch (ex) {
+      error(ex);
+      throw new BaseError(ex);
     }
   }
 
@@ -178,7 +180,7 @@ class User extends Service {
       let signupRes = { user, roles: userRoles };
       return signupRes;
     } catch (ex) {
-      console.error(ex.stack);
+      error(ex.stack);
       throw new BaseError(ex);
     }
   }
@@ -260,7 +262,7 @@ class User extends Service {
 
       return loginRes; //.toJson();
     } catch (ex) {
-      throw new BaseError(ex.message, ex.code);
+      throw new BaseError(ex);
     }
   }
 
@@ -285,7 +287,7 @@ class User extends Service {
     } catch (ex) {
       throw new BaseError(
         ex.message || 'An error occurred while login into your account. Please try again.',
-        ex.status
+        error.status
       );
     }
   }
@@ -323,7 +325,7 @@ class User extends Service {
     } catch (ex) {
       throw new BaseError(
         ex.message || 'An error occurred while login into your account. Please try again.',
-        ex.status
+        error.status
       );
     }
   }
@@ -486,7 +488,10 @@ class User extends Service {
             role.resources = resources;
             return role;
           })
-        );
+        ).catch((err) => {
+          error(err);
+          return null;
+        });
 
         const resources = await this.resource.unscoped().findAll({
           attributes: {
@@ -522,8 +527,8 @@ class User extends Service {
 
       return user;
     } catch (ex) {
-      console.error(ex);
-      throw new BaseError(ex.message, ex.code);
+      error(ex);
+      throw new BaseError(ex);
     }
   }
 
@@ -542,8 +547,8 @@ class User extends Service {
       );
       return user;
     } catch (ex) {
-      console.error(ex);
-      throw new BaseError(ex.message, ex.code);
+      error(ex);
+      throw new BaseError(ex);
     }
   }
 }

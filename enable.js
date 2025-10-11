@@ -1,6 +1,7 @@
+/* eslint-env node */
 'use strict';
-import chalk from 'chalk';
-const log = console.log;
+import { info } from './src/helpers/console.js';
+
 import enableModule from './src/system/generator/enableModule.js';
 
 async function main() {
@@ -10,7 +11,7 @@ async function main() {
     const actionArr = ['redis', 'socket', 'kafka', 'neo4j'];
     if (actionArr.includes(processAction)) {
       await enableModule(processAction);
-      console.log('start here');
+      info('start here');
     } else {
       throw new Error('Invalid Command');
     }
@@ -27,7 +28,7 @@ async function main() {
     //   throw new Error('Invalid Command');
     // }
   } catch (ex) {
-    log(ex.message);
+    info(ex.message);
   }
 }
 

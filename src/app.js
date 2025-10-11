@@ -30,6 +30,9 @@ const MEMORY_USAGE_LOG = process.env.MEMORY_USAGE_LOG === 'true';
 await loadEvents();
 const httpServer = http.createServer(app);
 
+httpServer.keepAliveTimeout = 5000; // 5 seconds
+httpServer.headersTimeout = 6000; // slightly more than keepAliveTimeout
+
 SocketEvent.init(httpServer);
 
 // Memory monitoring

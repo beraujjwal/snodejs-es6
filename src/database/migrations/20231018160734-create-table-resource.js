@@ -194,20 +194,12 @@ async function down({ context: queryInterface }) {
   const transaction = await queryInterface.sequelize.transaction();
   const dbName = queryInterface.sequelize.getDialect();
   try {
-    await queryInterface.removeIndex(
-      'acl_resources',
-      'idx_unique_acl_resources_slug',
-      {
-        transaction,
-      }
-    );
-    await queryInterface.removeIndex(
-      'acl_resources',
-      'idx_acl_resources_name',
-      {
-        transaction,
-      }
-    );
+    await queryInterface.removeIndex('acl_resources', 'idx_unique_acl_resources_slug', {
+      transaction,
+    });
+    await queryInterface.removeIndex('acl_resources', 'idx_acl_resources_name', {
+      transaction,
+    });
 
     if (dbName === 'mysql') {
       await queryInterface.sequelize.query(

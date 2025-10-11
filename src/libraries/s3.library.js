@@ -11,10 +11,12 @@ import {
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import mime from 'mime-types';
-import sharp from 'sharp';
 
 import client from '../helpers/s3.js';
 import config from '../config/s3.config.js';
+import { error } from '../helpers/logger.js';
+
+// import { generateRandomNumber } from '../helpers/utility.js';
 
 const __dirname = new URL('.', import.meta.url).pathname;
 const tmpDir = path.join(__dirname, '../../temp');
@@ -38,15 +40,11 @@ export const downloadFile = async (bucket = config.bucketName, key) => {
     const { Body } = await client.send(command);
     return Body;
   } catch (ex) {
-    throw new Error(ex.message);
+    throw new Error(ex);
   }
 };
 
-export const downloadS3File = async (
-  bucket = config.bucketName,
-  key,
-  path = './temp'
-) => {
+export const downloadS3File = async (bucket = config.bucketName, key, path = './temp') => {
   try {
     const params = {
       Bucket: bucket,
@@ -62,15 +60,11 @@ export const downloadS3File = async (
       return true;
     });
   } catch (ex) {
-    throw new Error(ex.message);
+    throw new Error(ex);
   }
 };
 
-export const uploadFileInS3 = async (
-  localPath,
-  key,
-  bucket = config.bucketName
-) => {
+export const uploadFileInS3 = async (localPath, key, bucket = config.bucketName) => {
   //const stream = new PassThrough();
   const partialsPath = path.join(tmpDir, localPath);
   const fileStream = fs.createReadStream(partialsPath);
@@ -89,131 +83,127 @@ export const uploadFileInS3 = async (
     });
     await uploadToS3.done();
   } catch (ex) {
-    throw new Error(ex.message);
+    throw new Error(ex);
   }
 };
 
-export const downloadObjectFromLink = async (
-  directory_location,
-  objectName,
-  res
-) => {
-  try {
-    const url = `${config.bucketName}${directory_location}${objectName}`;
-    const file = `${objectPath}${objectName}`;
+// export const downloadObjectFromLink = async (directory_location, objectName, res) => {
+//   try {
+//     const url = `${config.bucketName}${directory_location}${objectName}`;
+//     const file = `${objectPath}${objectName}`;
 
-    const fileStream = fs.createWriteStream(file);
-    https
-      .get(url, (response) => {
-        response.pipe(fileStream);
-        fileStream.on('finish', () => {
-          fileStream.close();
-          res.download(file, (error) => {
-            if (!error) {
-              fs.unlink(file, () => console.log('File removed successfully'));
-              console.log('File downloaded successfully');
-            }
-          });
-        });
-      })
-      .on('error', (error) => {
-        console.log('Error:', error.message);
-      });
-  } catch (ex) {
-    throw new Error(ex.message);
-  }
-};
+//     const fileStream = fs.createWriteStream(file);
+//     https
+//       .get(url, (response) => {
+//         response.pipe(fileStream);
+//         fileStream.on('finish', () => {
+//           fileStream.close();
+//           res.download(file, (error) => {
+//             if (!error) {
+//               fs.unlink(file, () => console.log('File removed successfully'));
+//               console.log('File downloaded successfully');
+//             }
+//           });
+//         });
+//       })
+//       .on('error', (error) => {
+//         console.log('Error:', ex);
+//       });
+//   } catch (ex) {
+//     throw new Error(ex);
+//   }
+// };
 
-export const uploadBase64ToS3 = async (
-  base64String,
-  fileName = null,
-  s3Path,
-  options = { needThumbnail: true, bucket: config.bucketName }
-) => {
-  try {
-    const buffer = Buffer.from(base64String, 'base64');
-    let fileNameValue = fileName || null;
-    if (fileNameValue === null) {
-      const randomNumber = generateRandomNumber(5) + Date.now();
-      fileNameValue = `${randomNumber}.jpeg`;
-    }
+// export const uploadBase64ToS3 = async (
+//   base64String,
+//   fileName = null,
+//   s3Path,
+//   options = { needThumbnail: true, bucket: config.bucketName }
+// ) => {
+//   try {
+//     const buffer = Buffer.from(base64String, 'base64');
+//     let fileNameValue = fileName || null;
+//     if (fileNameValue === null) {
+//       const randomNumber = generateRandomNumber(5) + Date.now();
+//       fileNameValue = `${randomNumber}.jpeg`;
+//     }
 
-    // Upload to S3
-    const uploadParams = {
-      Bucket: options.bucket,
-      Key: `${s3Path}/${fileNameValue}`, // e.g., "uploads/image.png"
-      Body: buffer,
-      ContentType: 'image/jpeg',
-      ContentDisposition: 'inline',
-    };
+//     // Upload to S3
+//     const uploadParams = {
+//       Bucket: options.bucket,
+//       Key: `${s3Path}/${fileNameValue}`, // e.g., "uploads/image.png"
+//       Body: buffer,
+//       ContentType: 'image/jpeg',
+//       ContentDisposition: 'inline',
+//     };
 
-    const command = new PutObjectCommand(uploadParams);
-    await client.send(command);
+//     const command = new PutObjectCommand(uploadParams);
+//     await client.send(command);
 
-    if (options.needThumbnail) {
-      const thumbnail = await base64ToThumbnail(base64String, 400);
-      await uploadBase64ToS3(thumbnail, `thumbnail/${fileNameValue}`, s3Path, {
-        needThumbnail: false,
-        bucket: options.bucket,
-      });
-    }
+//     if (options.needThumbnail) {
+//       const thumbnail = await base64ToThumbnail(base64String, 400);
+//       await uploadBase64ToS3(thumbnail, `thumbnail/${fileNameValue}`, s3Path, {
+//         needThumbnail: false,
+//         bucket: options.bucket,
+//       });
+//     }
 
-    return fileNameValue;
-  } catch (ex) {
-    throw ex;
-  }
-};
+//     return fileNameValue;
+//   } catch (ex) {
+//     throw ex;
+//   }
+// };
 
-export const processFile = async (
-  file,
-  folder,
-  options = { needThumbnail: true, bucket: config.bucketName }
-) => {
-  try {
-    const filePath = file.path;
-    const fileName = file.filename;
-    const fileOriginalName = splitAtFirstOccurrence(fileName, '-')[1];
-    const fileExtension = getFileExtension(fileName);
-    const randomNumber = generateRandomNumber(5) + Date.now();
-    const s3Filename = `${randomNumber}.${fileExtension}`;
-    const s3BasePath = `https://${options.bucket}.s3.amazonaws.com/${folder}`;
-    const imageFormat = ['jpeg', 'jpg', 'png', 'gif'];
-    const fileSize = file.size;
-    let thumbnailName = null;
-    let thumbnailUrl = null;
-    const tempPath = config.UPLOAD_TEMP_PATH;
+// export const processFile = async (
+//   file,
+//   folder,
+//   options = { needThumbnail: true, bucket: config.bucketName }
+// ) => {
+//   try {
+//     const filePath = file.path;
+//     const fileName = file.filename;
+//     const fileOriginalName = splitAtFirstOccurrence(fileName, '-')[1];
+//     const fileExtension = getFileExtension(fileName);
+//     const randomNumber = generateRandomNumber(5) + Date.now();
+//     const s3Filename = `${randomNumber}.${fileExtension}`;
+//     const s3BasePath = `https://${options.bucket}.s3.amazonaws.com/${folder}`;
+//     const imageFormat = ['jpeg', 'jpg', 'png', 'gif'];
+//     const fileSize = file.size;
+//     let thumbnailName = null;
+//     let thumbnailUrl = null;
+//     const tempPath = config.UPLOAD_TEMP_PATH;
 
-    if (options.needThumbnail) {
-      const s3ThumbnailFilename = `${randomNumber}.${fileExtension}`;
-      const generatedThumbnailFileName = `thumb-${s3ThumbnailFilename}`;
-      const thumbnailPath = `${tempPath}/${generatedThumbnailFileName}`;
-      await sharp(filePath).resize({ width: 300 }).toFile(thumbnailPath);
+//     if (options.needThumbnail) {
+//       const s3ThumbnailFilename = `${randomNumber}.${fileExtension}`;
+//       const generatedThumbnailFileName = `thumb-${s3ThumbnailFilename}`;
+//       const thumbnailPath = `${tempPath}/${generatedThumbnailFileName}`;
+//       await sharp(filePath).resize({ width: 300 }).toFile(thumbnailPath);
 
-      if (options.needThumbnail) {
-        await fileUploadToS3(
-          generatedThumbnailFileName,
-          s3ThumbnailFilename,
-          `${folder}/thumbnail`
-        );
-        thumbnailName = `thumbnail/${s3ThumbnailFilename}`;
-        thumbnailUrl = `${s3BasePath}/thumbnail/${s3ThumbnailFilename}`;
-      }
-    }
+//       if (options.needThumbnail) {
+//         await fileUploadToS3(
+//           generatedThumbnailFileName,
+//           s3ThumbnailFilename,
+//           `${folder}/thumbnail`
+//         );
+//         thumbnailName = `thumbnail/${s3ThumbnailFilename}`;
+//         thumbnailUrl = `${s3BasePath}/thumbnail/${s3ThumbnailFilename}`;
+//       }
+//     }
 
-    await fileUploadToS3(fileName, s3Filename, folder);
+//     await fileUploadToS3(fileName, s3Filename, folder);
 
-    return {
-      originalUrl: `${s3BasePath}/${s3Filename}`,
-      thumbnailUrl: thumbnailUrl,
-      fileName: s3Filename,
-      thumbnailName: thumbnailName,
-      fileOriginalName: fileOriginalName,
-      fileExtension: fileExtension,
-    };
-  } catch (ex) {
-    console.error(ex);
-  }
-};
+//     return {
+//       originalUrl: `${s3BasePath}/${s3Filename}`,
+//       thumbnailUrl: thumbnailUrl,
+//       fileName: s3Filename,
+//       thumbnailName: thumbnailName,
+//       fileOriginalName: fileOriginalName,
+//       fileExtension: fileExtension,
+//     };
+//   } catch (ex) {
+//     console.error(ex);
+//   }
+// };
 
 export const fileUploadToS3 = async (
   fileName,
@@ -233,7 +223,7 @@ export const fileUploadToS3 = async (
           Body: new Buffer.from(data),
         };
         await client.send(new PutObjectCommand(params));
-        if (options.deleteLocal) deleteIfExistsSync(filePath);
+        // if (options.deleteLocal) deleteIfExistsSync(filePath);
       });
       resolve();
     } else reject('File Not Found');
@@ -280,7 +270,7 @@ export const bigFileUploadToS3 = async (
     console.log(`File uploaded successfully at ${Location}`);
     return Location;
   } catch (ex) {
-    console.error('Upload error:', ex);
+    error('Upload error:', ex);
     throw ex;
   }
 };
@@ -290,11 +280,7 @@ export const getFileExtension = (filename) => {
   return parts.length > 1 ? parts.pop() : ''; // Return the last part or an empty string if no extension
 };
 
-export const uploadHtmlEmailBodyToS3 = async (
-  htmlContent,
-  path,
-  bucket = config.bucketName
-) => {
+export const uploadHtmlEmailBodyToS3 = async (htmlContent, path, bucket = config.bucketName) => {
   try {
     const name = Date.now() + '-' + Math.round(Math.random() * 1e9);
     const fileName = `${name}.html`;
@@ -309,25 +295,20 @@ export const uploadHtmlEmailBodyToS3 = async (
     await client.send(command);
     return `${path}/${fileName}`;
   } catch (ex) {
-    console.error('Upload error:', ex);
+    error('Upload error:', ex);
     throw ex;
   }
 };
 
 export const getHtmlFromS3 = async (key, bucket = config.bucketName) => {
   const command = new GetObjectCommand({ Bucket: bucket, Key: key });
-  const { Body } = await s3.send(command);
+  const { Body } = await client.send(command);
   return await streamToString(Body);
 };
 
-export const moveFile = async (
-  bucket,
-  oldKey,
-  newKey,
-  deleteOriginal = false
-) => {
+export const moveFile = async (bucket, oldKey, newKey, deleteOriginal = false) => {
   // Step 1: Copy to new location
-  await s3.send(
+  await client.send(
     new CopyObjectCommand({
       Bucket: bucket,
       CopySource: `${bucket}/${oldKey}`, // old bucket/key
@@ -337,7 +318,7 @@ export const moveFile = async (
 
   // Step 2: Delete old file
   if (deleteOriginal) {
-    await s3.send(
+    await client.send(
       new DeleteObjectCommand({
         Bucket: bucket,
         Key: oldKey,
@@ -355,7 +336,7 @@ export const deleteLocalFile = async (filePath) => {
     console.log(`Deleted ${filePath}`);
     return true;
   } catch (ex) {
-    console.error('Delete error:', ex);
+    error('Delete error:', ex);
     throw ex;
   }
 };

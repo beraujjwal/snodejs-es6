@@ -49,8 +49,8 @@ class DeepTrimmingMiddleware extends Base {
       trimStringValues(req.params);
 
       next();
-    } catch (error) {
-      res.status(500).send('Internal Server Error');
+    } catch (ex) {
+      res.status(500).send(ex.message || 'Internal Server Error');
     }
   }
 }

@@ -1,8 +1,7 @@
 'use strict';
 import neo4j from '../../libraries/neo4j.library.js';
-
-import User from '../../models/user.model.js';
-
+// import User from '../../models/user.model.js';
+import { error } from '../helpers/logger.js';
 
 async function insertInitialUsersData() {
   try {
@@ -12,19 +11,18 @@ async function insertInitialUsersData() {
     `;
 
     const users = [
-      { name: "Alice", email: "alice@example.com" },
-      { name: "Bob", email: "bob@example.com" },
-      { name: "Charlie", email: "charlie@example.com" }
+      { name: 'Alice', email: 'alice@example.com' },
+      { name: 'Bob', email: 'bob@example.com' },
+      { name: 'Charlie', email: 'charlie@example.com' },
     ];
 
-    await session.run(query, { users });
-    console.log("Initial data inserted into Neo4j");
-
-  } catch (error) {
-    console.error("Error inserting data:", error);
+    await neo4j.run(query, { users });
+    console.log('Initial data inserted into Neo4j');
+  } catch (ex) {
+    error('Error inserting data:', ex);
   } finally {
-    await session.close();
-    await driver.close();
+    await neo4j.close();
+    await neo4j.close();
   }
 }
 

@@ -48,8 +48,7 @@ async function up({ context: queryInterface }) {
           type: Sequelize.ENUM('active', 'close', 'inactive', 'pending'),
           allowNull: false,
           defaultValue: 'active',
-          comment:
-            'This column is for checking if the user session is active or not.',
+          comment: 'This column is for checking if the user session is active or not.',
         },
         status: {
           type: Sequelize.BOOLEAN,

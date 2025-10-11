@@ -2,27 +2,26 @@
 
 import config from '../config/redis.config.js';
 import { redisClient } from '../helpers/redis.js';
+import { error } from '../helpers/logger.js';
 
 export const keyExists = async (key) => {
   try {
     const exists = await redisClient.exists(key);
     return exists === 1; // Returns true if key exists, false otherwise
   } catch (ex) {
-    console.error('Redis Exists Error:', ex);
+    error('Redis Exists Error:', ex);
     return false;
   }
 };
 
 export const setValue = async (key, value, timeout = '5m') => {
   try {
-    const stringifiedValue = isPlainObject(value)
-      ? JSON.stringify(value)
-      : value;
+    const stringifiedValue = isPlainObject(value) ? JSON.stringify(value) : value;
     const expiresIn = getExpiresInTime(timeout);
     await redisClient.set(key, stringifiedValue, { EX: expiresIn });
     return true;
   } catch (ex) {
-    console.error('Redis Set Value Error:', ex);
+    error('Redis Set Value Error:', ex);
     return true;
   }
 };
@@ -33,7 +32,7 @@ export const getValue = async (key) => {
     if (!value) return null;
     return JSON.parse(value);
   } catch (ex) {
-    console.error(ex);
+    error(ex);
   }
 };
 
@@ -41,7 +40,7 @@ export const deleteValue = async (key) => {
   try {
     return await redisClient.del(key);
   } catch (ex) {
-    console.error(ex);
+    error(ex);
   }
 };
 
@@ -51,7 +50,7 @@ export const incrementValue = async (key, ttl = 60) => {
     if (count === 1) await redisClient.expire(key, ttl); // Set TTL only on first increment
     return count;
   } catch (ex) {
-    console.error('Redis Incr Error:', ex);
+    error('Redis Incr Error:', ex);
     return 0;
   }
 };
@@ -61,9 +60,7 @@ const getExpiresInTime = (expiresIn) => {
 
   const redisExpiresIn = expiresIn || config.expires || '5m';
   const redisExpiresInInt = parseInt(redisExpiresIn, 10);
-  const redisExpiresString = redisExpiresIn
-    .replace(redisExpiresInInt, '')
-    .trim();
+  const redisExpiresString = redisExpiresIn.replace(redisExpiresInInt, '').trim();
 
   switch (redisExpiresString) {
     case 'm':

@@ -5,6 +5,8 @@ import { response } from '../helpers/apiResponse.js';
 import { sequelize } from '../../database/db.js';
 import { BaseError } from '../error/baseError.js';
 
+import { error } from '../../../helpers/logger.js';
+
 class ExceptionHandlerMiddleware extends Base {
   constructor(controllerFunction) {
     super();
@@ -55,7 +57,7 @@ class ExceptionHandlerMiddleware extends Base {
       if (transaction) await transaction.commit();
       return res.status(result.code).json(response(resultStructure));
     } catch (ex) {
-      if (this.getEnv('APP_DEBUG')) console.error(ex);
+      if (this.getEnv('APP_DEBUG')) error(ex);
       if (transaction) await transaction.rollback();
       next(mapSequelizeError(ex));
     }
@@ -95,8 +97,5 @@ const mapSequelizeError = (error) => {
 
   if (error instanceof BaseError) return error;
   if (error instanceof Error) return new BaseError(error.message, 500);
-  return new BaseError(
-    'Some error occurred while processing your request.',
-    500
-  );
+  return new BaseError('Some error occurred while processing your request.', 500);
 };

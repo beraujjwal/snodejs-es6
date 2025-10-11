@@ -172,12 +172,9 @@ async function up({ context: queryInterface }) {
 
 async function down({ context: queryInterface }) {
   const transaction = await queryInterface.sequelize.transaction();
-  const dbName = queryInterface.sequelize.getDialect();
+  // const dbName = queryInterface.sequelize.getDialect();
   try {
-    await queryInterface.removeColumn(
-      'gnrl_user_devices',
-      'idx_unique_gnrl_user_devices_fks'
-    );
+    await queryInterface.removeColumn('gnrl_user_devices', 'idx_unique_gnrl_user_devices_fks');
     await queryInterface.dropTable('gnrl_user_devices', {
       transaction,
     });

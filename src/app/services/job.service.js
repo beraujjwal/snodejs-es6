@@ -34,7 +34,7 @@ class Job extends Service {
       });
       return jobs;
     } catch (ex) {
-      throw new BaseError(ex.message);
+      throw new BaseError(ex);
     }
   }
 
@@ -56,7 +56,7 @@ class Job extends Service {
         job.update({ progressStatus: 'completed' });
       }
     } catch (ex) {
-      throw new BaseError(ex.message);
+      throw new BaseError(ex);
     }
   }
 
@@ -66,7 +66,7 @@ class Job extends Service {
       // Work on the job
       return true;
     } catch (ex) {
-      throw new BaseError(ex.message);
+      throw new BaseError(ex);
     }
   }
 }

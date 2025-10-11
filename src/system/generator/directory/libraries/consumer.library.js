@@ -2,8 +2,9 @@
 import chalk from 'chalk';
 
 import { kafka } from '../helpers/kafka.js';
-import { consumerCallTopicsService } from '../kafka/index.js';
+// import { consumerCallTopicsService } from '../kafka/index.js';
 import { config } from '../config/kafka.config.js';
+import { error } from '../helpers/logger.js';
 
 const { groupId, topics } = config;
 
@@ -21,13 +22,10 @@ if (kafka) {
           await consumer
             .connect()
             .then(() => console.log('Consumer connected'))
-            .catch((err) =>
-              log(chalk.white.bgRed.bold('✘ Kafka consumer connect failed!'))
-            );
+            .catch((err) => log(chalk.white.bgRed.bold('✘ Kafka consumer connect failed!', err)));
 
           topics.forEach((topic) => {
-            if (topic.length > 0)
-              consumer.subscribe({ topic: topic, fromBeginning: false });
+            if (topic.length > 0) consumer.subscribe({ topic: topic, fromBeginning: false });
           });
 
           await consumer.run({
@@ -36,7 +34,7 @@ if (kafka) {
             // },
             eachBatch: async ({ batch, resolveOffset, heartbeat }) => {
               for (let message of batch.messages) {
-                await processMessage(message);
+                // await processMessage(message);
                 resolveOffset(message.offset);
                 await heartbeat(); // manually send heartbeat to broker
               }
@@ -62,7 +60,7 @@ if (kafka) {
           });
         }
       } catch (ex) {
-        console.log(ex);
+        error(ex);
       }
     };
 }

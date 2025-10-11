@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 import { sendMail } from '../helpers/mailer.js';
+import { error } from '../helpers/logger.js';
 
 export const sentOTPMail = function (email, token) {
   try {
@@ -19,17 +20,14 @@ export const sentOTPMail = function (email, token) {
       attachments: [
         {
           filename: 'logo.jpg',
-          path: path.resolve(
-            __dirname,
-            '../resources/templates/images/logo.jpg'
-          ),
+          path: path.resolve(__dirname, '../resources/templates/images/logo.jpg'),
         },
       ],
     };
 
     sendMail(mailOptions);
   } catch (ex) {
-    console.log(ex);
+    error(ex);
   }
 };
 
@@ -50,16 +48,13 @@ export const registrationVerificationEmail = function (
       attachments: [
         {
           filename: 'logo.jpg',
-          path: path.resolve(
-            __dirname,
-            '../resources/templates/images/logo.jpg'
-          ),
+          path: path.resolve(__dirname, '../resources/templates/images/logo.jpg'),
         },
       ],
     };
 
     sendMail(mailOptions);
   } catch (ex) {
-    console.log(ex);
+    error(ex);
   }
 };

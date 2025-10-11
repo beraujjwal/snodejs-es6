@@ -148,18 +148,14 @@ async function up({ context: queryInterface }) {
 
 async function down({ context: queryInterface }) {
   const transaction = await queryInterface.sequelize.transaction();
-  const dbName = queryInterface.sequelize.getDialect();
+  // const dbName = queryInterface.sequelize.getDialect();
   try {
     await queryInterface.removeIndex('gnrl_states', 'idx_gnrl_states_name', {
       transaction,
     });
-    await queryInterface.removeIndex(
-      'gnrl_states',
-      'idx_unique_gnrl_states_code',
-      {
-        transaction,
-      }
-    );
+    await queryInterface.removeIndex('gnrl_states', 'idx_unique_gnrl_states_code', {
+      transaction,
+    });
     await queryInterface.removeIndex('gnrl_states', 'idx_gnrl_states_type', {
       transaction,
     });

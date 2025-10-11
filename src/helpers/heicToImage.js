@@ -23,9 +23,9 @@ export const convertHeicToJpeg = async (inputPath, outputPath) => {
     });
 
     fs.writeFileSync(convertedBase, outputBuffer);
-  } catch (err) {
-    console.error('❌ Error convert to jpg:', err);
-    throw new BaseError(err);
+  } catch (ex) {
+    console.error('❌ Error convert to jpg:', ex);
+    throw new BaseError(ex);
   }
 };
 

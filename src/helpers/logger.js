@@ -36,8 +36,8 @@ function rotateLog() {
         fs.closeSync(fd);
       }
     }
-  } catch (err) {
-    console.error('Log rotation error:', err);
+  } catch (ex) {
+    error('Log rotation error:', ex);
   }
 }
 

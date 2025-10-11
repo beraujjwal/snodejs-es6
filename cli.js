@@ -7,7 +7,6 @@ import { info, error } from './src/helpers/console.js';
 
 async function main() {
   try {
-    // eslint-disable-next-line no-undef
     const argumentsArr = process.argv.slice(2);
 
     if (argumentsArr.length === 2 && argumentsArr[0].indexOf(':') === 4) {
@@ -47,7 +46,7 @@ async function main() {
       throw new Error('Invalid Command');
     }
   } catch (ex) {
-    error(ex.message);
+    error(ex);
   }
 }
 

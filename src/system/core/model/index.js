@@ -7,25 +7,25 @@ import pluralize from 'pluralize';
 import fs from 'fs';
 import path from 'path';
 
+import { error } from '../../../helpers/logger.js';
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const modelsPath = path.join(__dirname, '../../../models/');
 const db = {};
 
 // Function to dynamically import all models
 const loadModels = async () => {
-  const files = fs
-    .readdirSync(modelsPath)
-    .filter((file) => file.endsWith('.js'));
+  const files = fs.readdirSync(modelsPath).filter((file) => file.endsWith('.js'));
 
   const modelPromises = files.map(async (file) => {
-    const modelName = pascalCase(
-      pluralize.singular(file.replace('.model.js', ''))
-    );
+    const modelName = pascalCase(pluralize.singular(file.replace('.model.js', '')));
     const model = await import(path.join(modelsPath, file));
     db[modelName] = model.default;
   });
 
-  await Promise.all(modelPromises);
+  await Promise.all(modelPromises).catch((err) => {
+    error(err);
+  });
 };
 
 // Ensure models are loaded before exporting

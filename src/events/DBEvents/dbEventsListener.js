@@ -1,5 +1,7 @@
 import { pgClient } from '../../system/database/pgClient.js';
 
+import { error } from '../../helpers/logger.js';
+
 export async function startDBListener() {
   try {
     await pgClient.connect();
@@ -33,12 +35,12 @@ export async function startDBListener() {
           default:
             console.log('Unknown channel:', msg.channel, payload);
         }
-      } catch (err) {
-        console.error('Invalid payload:', err.message);
-        console.error('Invalid payload:', msg.payload);
+      } catch (ex) {
+        error('Invalid payload:', ex.message);
+        error('Invalid payload:', ex.payload);
       }
     });
   } catch (ex) {
-    console.log(ex);
+    error(ex);
   }
 }

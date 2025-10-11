@@ -202,9 +202,7 @@ async function down({ context: queryInterface }) {
       transaction,
     });
     if (dbName === 'mysql') {
-      await queryInterface.sequelize.query(
-        `DROP TRIGGER IF EXISTS alter_acl_menus_slug_on_delete`
-      );
+      await queryInterface.sequelize.query(`DROP TRIGGER IF EXISTS alter_acl_menus_slug_on_delete`);
     } else if (dbName === 'postgres') {
       await queryInterface.sequelize.query(
         `

@@ -88,20 +88,11 @@ async function up({ context: queryInterface }) {
 
 async function down({ context: queryInterface }) {
   const transaction = await queryInterface.sequelize.transaction();
-  const dbName = queryInterface.sequelize.getDialect();
+  // const dbName = queryInterface.sequelize.getDialect();
   try {
-    await queryInterface.removeColumn(
-      'gnrl_worklogs',
-      'idx_gnrl_worklogs_module'
-    );
-    await queryInterface.removeColumn(
-      'gnrl_worklogs',
-      'idx_gnrl_worklogs_action'
-    );
-    await queryInterface.removeColumn(
-      'gnrl_worklogs',
-      'idx_gnrl_worklogs_device_id'
-    );
+    await queryInterface.removeColumn('gnrl_worklogs', 'idx_gnrl_worklogs_module');
+    await queryInterface.removeColumn('gnrl_worklogs', 'idx_gnrl_worklogs_action');
+    await queryInterface.removeColumn('gnrl_worklogs', 'idx_gnrl_worklogs_device_id');
     await queryInterface.dropTable('gnrl_worklogs', {
       transaction,
     });

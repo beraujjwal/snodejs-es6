@@ -1,3 +1,4 @@
+'use strict';
 import { Model, DataTypes, Op } from 'sequelize';
 import slugify from 'slugify';
 import { BaseError } from '../error/baseError.js';
@@ -29,12 +30,7 @@ export class BaseModel extends Model {
 
     // Footprint hooks
     if (options.footprint) {
-      [
-        'beforeValidate',
-        'beforeCreate',
-        'beforeUpdate',
-        'beforeDestroy',
-      ].forEach((hook) => {
+      ['beforeValidate', 'beforeCreate', 'beforeUpdate', 'beforeDestroy'].forEach((hook) => {
         model.addHook(hook, (instance, opts) => {
           if (opts.userID) instance.set('lastActivityBy', opts.userID);
         });
@@ -68,14 +64,11 @@ export class BaseModel extends Model {
       await this.handleOrder(instance, config, options);
       this.handleStatus(instance, config);
     } catch (ex) {
-      console.error(
-        `Error in commonBeforeSaveHook for ${instance.constructor.name}:`,
-        {
-          message: ex.message,
-          stack: ex.stack,
-          instance: instance.get?.({ plain: true }) ?? instance,
-        }
-      );
+      console.error(`Error in commonBeforeSaveHook for ${instance.constructor.name}:`, {
+        message: ex.message,
+        stack: ex.stack,
+        instance: instance.get?.({ plain: true }) ?? instance,
+      });
       throw new BaseError(ex);
     }
   }
@@ -83,11 +76,7 @@ export class BaseModel extends Model {
   /**
    * Transaction-safe unique slug generation
    */
-  static async handleSlug(
-    instance,
-    { enableSlug, slugField, slugTargetField },
-    options
-  ) {
+  static async handleSlug(instance, { enableSlug, slugField, slugTargetField }, options) {
     if (
       !enableSlug ||
       typeof instance[slugField] !== 'string' ||
