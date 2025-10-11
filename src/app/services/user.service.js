@@ -287,7 +287,7 @@ class User extends Service {
     } catch (ex) {
       throw new BaseError(
         ex.message || 'An error occurred while login into your account. Please try again.',
-        error.status
+        ex.status
       );
     }
   }
@@ -325,7 +325,7 @@ class User extends Service {
     } catch (ex) {
       throw new BaseError(
         ex.message || 'An error occurred while login into your account. Please try again.',
-        error.status
+        ex.status
       );
     }
   }
@@ -488,8 +488,8 @@ class User extends Service {
             role.resources = resources;
             return role;
           })
-        ).catch((err) => {
-          error(err);
+        ).catch((ex) => {
+          error(ex);
           return null;
         });
 

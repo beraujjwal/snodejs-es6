@@ -101,7 +101,7 @@ export const uploadFileInS3 = async (localPath, key, bucket = config.bucketName)
 //           });
 //         });
 //       })
-//       .on('error', (error) => {
+//       .on('error', (ex) => {
 //         console.log('Error:', ex);
 //       });
 //   } catch (ex) {
@@ -209,8 +209,8 @@ export const fileUploadToS3 = async (
   const filePath = config.fileTempPath + fileName;
   return new Promise((resolve, reject) => {
     if (fs.existsSync(filePath)) {
-      fs.readFile(filePath, async (err, data) => {
-        if (err) reject(err);
+      fs.readFile(filePath, async (ex, data) => {
+        if (ex) reject(ex);
         const params = {
           Bucket: options.bucket,
           Key: `${uploadFolder}/${uploadedFileName}`,
@@ -340,21 +340,27 @@ export const downloadFilesAsZip = async (
   outputZipFile = 'download.zip',
   options = { deleteLocal: true, bucket: config.bucketName }
 ) => {
-  const outputZipPath = path.join(tmpDir, outputZipFile);
-  // Create output stream
-  const output = fs.createWriteStream(outputZipPath);
-  const archive = archiver('zip', { zlib: { level: 9 } });
+  try {
+    const outputZipPath = path.join(tmpDir, outputZipFile);
+    // Create output stream
+    const output = fs.createWriteStream(outputZipPath);
+    const archive = archiver('zip', { zlib: { level: 9 } });
 
-  archive.pipe(output);
+    archive.pipe(output);
 
-  // Add each S3 file as a stream to the zip
-  for (const key of files) {
-    const Body = await downloadFile(key, options.bucket);
+    // Add each S3 file as a stream to the zip
+    for (const key of files) {
+      const Body = await downloadFile(key, options.bucket);
 
-    // Append stream directly to zip without writing locally
-    archive.append(Body, { name: key.split('/').pop() });
+      // Append stream directly to zip without writing locally
+      archive.append(Body, { name: key.split('/').pop() });
+    }
+
+    await archive.finalize();
+    console.log(`✅ Zip file created: ${outputZipPath}`);
+    return outputZipPath;
+  } catch (ex) {
+    error('Download error:', ex);
+    throw ex;
   }
-
-  await archive.finalize();
-  console.log(`✅ Zip file created: ${outputZipPath}`);
 };

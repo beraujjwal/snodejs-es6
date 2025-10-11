@@ -57,9 +57,9 @@ function toMB(bytes) {
 
 httpServer
   .listen(PORT)
-  .on('error', (err) => {
+  .on('error', (ex) => {
     console.error('🚫  Application failed to start');
-    console.error(`🚫  Error: ${err.message}`);
+    console.error(`🚫  Error: ${ex.message}`);
     process.exit(0);
   })
   .on('listening', () => {

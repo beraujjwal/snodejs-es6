@@ -69,9 +69,9 @@ async function up({ context: queryInterface }) {
       ],
       {}
     )
-    .catch((error) => {
-      console.error(error);
-      throw error;
+    .catch((ex) => {
+      console.error(ex);
+      throw ex;
     });
 
   if (dbName === 'postgres') {
@@ -82,9 +82,9 @@ async function up({ context: queryInterface }) {
 }
 
 async function down({ context: queryInterface }) {
-  await queryInterface.bulkDelete('gnrl_regions', null, {}).catch((error) => {
-    console.error(error);
-    throw error;
+  await queryInterface.bulkDelete('gnrl_regions', null, {}).catch((ex) => {
+    console.error(ex);
+    throw ex;
   });
 }
 

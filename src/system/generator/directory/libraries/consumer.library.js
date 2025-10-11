@@ -22,7 +22,7 @@ if (kafka) {
           await consumer
             .connect()
             .then(() => console.log('Consumer connected'))
-            .catch((err) => log(chalk.white.bgRed.bold('✘ Kafka consumer connect failed!', err)));
+            .catch((ex) => log(chalk.white.bgRed.bold('✘ Kafka consumer connect failed!', ex)));
 
           topics.forEach((topic) => {
             if (topic.length > 0) consumer.subscribe({ topic: topic, fromBeginning: false });

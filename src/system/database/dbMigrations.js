@@ -30,12 +30,10 @@ export const dbManipulation = async (moduleArg) => {
     } else if (processAction === 'seeder' && processName === 'down') {
       await rollbackSeeders({ to: fileTarget });
     } else {
-      console.error(
-        '❌ Unknown command. Usage: db:ACTION up|down [filename|ALL]'
-      );
+      console.error('❌ Unknown command. Usage: db:ACTION up|down [filename|ALL]');
     }
-  } catch (err) {
-    console.error(`❌ Error executing ${processAction} ${processName}:`, err);
+  } catch (ex) {
+    console.error(`❌ Error executing ${processAction} ${processName}:`, ex);
     process.exitCode = 1;
   }
 };

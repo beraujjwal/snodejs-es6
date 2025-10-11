@@ -1,13 +1,10 @@
 'use strict';
 import fs from 'fs';
 import util from 'util';
-import { BaseError } from '../system/core/error/baseError.js';
+// import { BaseError } from '../system/core/error/baseError.js';
 import { admin } from '../config/firebase.config.js';
 
-const log_file = fs.createWriteStream(
-  __dirname + '/../logs/notifications.log',
-  { flags: 'w' }
-);
+const log_file = fs.createWriteStream(__dirname + '/../logs/notifications.log', { flags: 'w' });
 const log_stdout = process.stdout;
 
 console.log = function (d) {
@@ -35,16 +32,17 @@ export const send = function (fcmTokens, title, message, options) {
 
   let newOptions = { ...notificationOptions, ...options };
 
-  if (fcmTokens.length < 1) {
-  } else {
+  if (fcmTokens.length > 0) {
+    // } else {
     admin
       .messaging()
       .sendToDevice(fcmTokens, payload, newOptions)
       .then((response) => {
+        console.log('Notification sent successfully', response);
         return true;
       })
-      .catch((err) => {
-        console.debug(err.message);
+      .catch((ex) => {
+        console.debug(ex.message);
       });
   }
 };

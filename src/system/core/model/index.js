@@ -23,8 +23,8 @@ const loadModels = async () => {
     db[modelName] = model.default;
   });
 
-  await Promise.all(modelPromises).catch((err) => {
-    error(err);
+  await Promise.all(modelPromises).catch((ex) => {
+    error(ex);
   });
 };
 

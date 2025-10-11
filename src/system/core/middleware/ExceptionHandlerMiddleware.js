@@ -1,4 +1,7 @@
 'use strict';
+import fs from 'fs';
+import path from 'path';
+
 import Base from '../base/index.js';
 
 import { response } from '../helpers/apiResponse.js';
@@ -48,6 +51,23 @@ class ExceptionHandlerMiddleware extends Base {
         { files, body, query, params },
         { transaction, user, deviceInfo }
       );
+
+      // If controller returns a file to download
+      if (result?.filePath) {
+        const filePath = result.filePath;
+        const fileName = path.basename(filePath);
+
+        return res.download(filePath, fileName, (ex) => {
+          if (ex) throw new BaseError(ex.message || 'Error downloading file', 500);
+
+          // ✅ Delete after download
+          fs.unlink(filePath, (unlinkErr) => {
+            if (unlinkErr) console.error('❌ Error deleting file:', unlinkErr);
+            else console.log('🗑️ Deleted file:', filePath);
+          });
+        });
+      }
+
       const resultStructure = {
         code: result.code,
         error: false,

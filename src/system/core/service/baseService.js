@@ -103,8 +103,8 @@ class BaseService extends Base {
           where: filter,
           transaction,
         }),
-      ]).catch((err) => {
-        error(err);
+      ]).catch((ex) => {
+        error(ex);
         return [null, 0]; // return fallback value if needed
       });
       //const rowsData = rows.map((item) => item.toJSON());
@@ -469,8 +469,8 @@ class BaseService extends Base {
             userID: parseInt(user.id),
           })
         )
-      ).catch((err) => {
-        error(err);
+      ).catch((ex) => {
+        error(ex);
         return null; // return fallback value if needed
       });
 

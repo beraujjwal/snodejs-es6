@@ -12,9 +12,9 @@ if (config.url) {
     password: config.password, // Add password here
   });
 
-  redisClient.on('error', (err) => {
+  redisClient.on('error', (ex) => {
     console.log(chalk.white.bgRed.bold('✘ Redis client setup process failed!'));
-    console.error('Redis Client Error:', err);
+    console.error('Redis Client Error:', ex);
   });
 
   await redisClient.connect();

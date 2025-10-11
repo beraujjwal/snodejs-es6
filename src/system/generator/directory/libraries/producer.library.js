@@ -24,7 +24,7 @@ const sendMessage = async (messageTopic, messageBody) => {
     await producer
       .connect()
       .then((value) => log('Producer connected', value))
-      .catch((err) => log(chalk.white.bgRed.bold('✘ Kafka producer connect failed!', err)));
+      .catch((ex) => log(chalk.white.bgRed.bold('✘ Kafka producer connect failed!', ex)));
 
     await producer
       .send({
@@ -34,8 +34,8 @@ const sendMessage = async (messageTopic, messageBody) => {
       .then((resp) => {
         log('producerData: ', resp);
       })
-      .catch((err) => {
-        console.error('error: ', err);
+      .catch((ex) => {
+        console.error('error: ', ex);
       });
     await producer.disconnect();
   } catch (ex) {
